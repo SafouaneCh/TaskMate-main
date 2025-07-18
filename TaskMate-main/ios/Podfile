@@ -1,0 +1,18 @@
+platform :ios, '10.0'
+
+# CocoaPods analytics
+install! 'cocoapods', :deterministic_uuids => false
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  # Define Flutter application path
+  flutter_application_path = '../'
+  
+  # Load Flutter's environment configuration
+  load File.join(flutter_application_path, '.ios', 'Flutter', 'flutter_export_environment.sh')
+
+  # Manually include Flutter pod dependencies
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
