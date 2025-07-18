@@ -11,26 +11,34 @@ interface SignUpBody {
     name: string;
     email: string;
     password: string;
+    phone: string;
 }
 authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Response) => {
     try{
-        const{name,email,password} =req.body;
+        // get req body
+        const{name, email, password, phone} = req.body;
+
+        // check if user already exists
         const existingUser = await db
         .select()
         .from(users)
-        .where(eq(users.email,email));
+        .where(eq(users.email, email));
+
         if (existingUser.length){
             res
             .status(400)
             .json({ msg: "User with the same email already exists!"});
             return;
         }
+
         //hashed pwd
         const hashedPassword = await bcryptjs.hash(password, 8);
+
         //creating a new user and stored in db
         const newUser: NewUser = {
             name,
             email,
+            phone,
             password: hashedPassword,
         };
         const [user] =await db.insert(users).values(newUser).returning();
