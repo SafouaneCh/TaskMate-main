@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'ContactProvider.dart'; // Import provider package
-import 'package:provider/provider.dart'; // Ensure Provider is imported
-import 'package:contacts_service/contacts_service.dart'; // Ensure contacts_service is imported
-import 'dart:typed_data'; // Import this to use Uint8List
+// Import provider package
+// Ensure Provider is imported
+// Ensure contacts_service is imported
+// Import this to use Uint8List
 
 class TaskCard extends StatelessWidget {
   final String time;
@@ -82,7 +82,9 @@ class _CardContent extends StatelessWidget {
               height: 1.2,
               letterSpacing: -0.5,
               color: isCompleted ? Colors.grey : const Color(0xFF333333),
-              decoration: isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+              decoration: isCompleted
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
             ),
           ),
           const SizedBox(height: 9),

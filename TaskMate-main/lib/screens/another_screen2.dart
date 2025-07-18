@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_button.dart';
-import 'another_screen.dart';
 import 'another_screen3.dart';
 import '../widgets/colors.dart';
 
@@ -69,7 +68,8 @@ class _AnotherScreenState extends State<AnotherScreen2> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => AnotherScreen3()),
+                          MaterialPageRoute(
+                              builder: (context) => AnotherScreen3()),
                         );
                       },
                     ),
@@ -77,7 +77,9 @@ class _AnotherScreenState extends State<AnotherScreen2> {
                   SizedBox(height: 20), // Add spacing between buttons
                 ],
               ),
-              Spacer(flex: 1), // Adding a Spacer to ensure flexible spacing at the bottom
+              Spacer(
+                  flex:
+                      1), // Adding a Spacer to ensure flexible spacing at the bottom
             ],
           ),
         ),

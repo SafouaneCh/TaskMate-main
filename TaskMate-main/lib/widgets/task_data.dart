@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'task_card.dart'; // Ensure this import matches the location of your TaskCard widget
-
 
 class TaskManager {
   static final List<TaskCard> _tasks = [
@@ -64,7 +62,6 @@ class TaskManager {
   static List<TaskCard> getTasks() {
     return _tasks;
   }
-
 
   // Method to add a new task
   static void addTask(TaskCard task) {

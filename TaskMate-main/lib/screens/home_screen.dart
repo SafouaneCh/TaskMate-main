@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
-import 'package:taskmate/widgets/custom_bottom_bar2.dart';
 import 'contact_management_screen.dart';
 import 'calendar_screen.dart';
 import 'settings_screen.dart';
-import '../widgets/task_card.dart';
 import '../widgets/custom_bottom_bar.dart';
 import '../widgets/task_data.dart'; // Ensure this import matches the location of your task_data.dart
 import '../widgets/add_task_popup.dart';
@@ -70,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return AddTaskModal(
           onTaskAdded: (newTask) {
             setState(() {
-              TaskManager.addTask(newTask);  // Add task to TaskManager
+              TaskManager.addTask(newTask); // Add task to TaskManager
             });
           },
         );
@@ -100,10 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 toolbarHeight: 100,
                 backgroundColor: Colors.transparent,
                 automaticallyImplyLeading: false,
-
                 elevation: 0,
                 flexibleSpace: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0, vertical: 20.0),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -135,7 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       Spacer(),
-
                     ],
                   ),
                 ),
@@ -164,7 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SizedBox(height: 20),
                     SingleChildScrollView(
-                      physics: NeverScrollableScrollPhysics(), // Disable vertical scrolling
+                      physics:
+                          NeverScrollableScrollPhysics(), // Disable vertical scrolling
                       child: TableCalendar(
                         firstDay: DateTime.utc(2020, 10, 16),
                         lastDay: DateTime.utc(2030, 3, 14),
@@ -187,7 +185,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         headerVisible: false,
                         daysOfWeekHeight: 40,
-
                         daysOfWeekStyle: DaysOfWeekStyle(
                           weekdayStyle: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -253,7 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Container(
                               margin: EdgeInsets.all(2.5),
                               width: 49.0,
-                              height: 67.0,// Margin to create space between tiles
+                              height:
+                                  67.0, // Margin to create space between tiles
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -273,7 +271,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Container(
                               margin: EdgeInsets.all(2.5),
                               width: 49.0,
-                              height: 67.0,// Margin to create space between tiles
+                              height:
+                                  67.0, // Margin to create space between tiles
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -294,12 +293,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Container(
                               margin: EdgeInsets.all(2.5),
                               width: 49.0,
-                              height: 67.0,// Margin to create space between tiles
+                              height:
+                                  67.0, // Margin to create space between tiles
                               alignment: Alignment.center,
 
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Color(0xFF074361), Color(0xFF0E81BB)],
+                                  colors: [
+                                    Color(0xFF074361),
+                                    Color(0xFF0E81BB)
+                                  ],
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,
                                 ),
@@ -325,7 +328,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.grey.shade300, width: 1),
+                                border: Border.all(
+                                    color: Colors.grey.shade300, width: 1),
                               ),
                               child: Text(
                                 day.day.toString(),
@@ -358,9 +362,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     // Display tasks
 
-                      Column(
-                        children: TaskManager.getTasks(), // Call getTasks directly
-
+                    Column(
+                      children:
+                          TaskManager.getTasks(), // Call getTasks directly
                     ),
                   ],
                 ),
@@ -377,7 +381,11 @@ class _HomeScreenState extends State<HomeScreen> {
             gradient: LinearGradient(
               begin: Alignment(0, -1),
               end: Alignment(0, 1),
-              colors: <Color>[Color(0xFF074666), Color(0xFF0E81BD), Color(0xFFFFFFFF)],
+              colors: <Color>[
+                Color(0xFF074666),
+                Color(0xFF0E81BD),
+                Color(0xFFFFFFFF)
+              ],
               stops: <double>[0, 1, 1],
             ),
           ),

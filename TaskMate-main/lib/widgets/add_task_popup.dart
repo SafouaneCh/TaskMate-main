@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:contacts_service/contacts_service.dart'; // Make sure contacts_service is imported
 import '../widgets/task_data.dart';
 import '../widgets/task_card.dart';
-import '../widgets/ContactProvider.dart';
 
 class AddTaskModal extends StatefulWidget {
   final void Function(TaskCard) onTaskAdded;
@@ -93,7 +92,9 @@ class _AddTaskModalState extends State<AddTaskModal> {
                               isCompleted: false,
                               name: _nameController.text,
                               date: _dateController.text,
-                              contacts: _selectedContacts.map((contact) => contact.displayName ?? '').toList(),
+                              contacts: _selectedContacts
+                                  .map((contact) => contact.displayName ?? '')
+                                  .toList(),
                             );
                             TaskManager.addTask(newTask);
                             Navigator.of(context).pop();
@@ -109,18 +110,25 @@ class _AddTaskModalState extends State<AddTaskModal> {
                     ],
                   ),
                   SizedBox(height: 30),
-                  _buildTextField('Task name', 'Enter your Task name', controller: _nameController, prefixIcon: Icons.task),
+                  _buildTextField('Task name', 'Enter your Task name',
+                      controller: _nameController, prefixIcon: Icons.task),
                   SizedBox(height: 20),
-                  _buildTextField('Task description', 'Enter your Task prompt', controller: _descriptionController, prefixIcon: Icons.notes),
+                  _buildTextField('Task description', 'Enter your Task prompt',
+                      controller: _descriptionController,
+                      prefixIcon: Icons.notes),
                   SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
-                        child: _buildDatePickerField('Date', '2024-09-01', controller: _dateController, prefixIcon: Icons.calendar_today),
+                        child: _buildDatePickerField('Date', '2024-09-01',
+                            controller: _dateController,
+                            prefixIcon: Icons.calendar_today),
                       ),
                       SizedBox(width: 10),
                       Expanded(
-                        child: _buildTimePickerField('Time', '14:00', controller: _timeController, prefixIcon: Icons.access_time),
+                        child: _buildTimePickerField('Time', '14:00',
+                            controller: _timeController,
+                            prefixIcon: Icons.access_time),
                       ),
                     ],
                   ),
@@ -140,14 +148,17 @@ class _AddTaskModalState extends State<AddTaskModal> {
                             isCompleted: false,
                             name: _nameController.text,
                             date: _dateController.text,
-                            contacts: _selectedContacts.map((contact) => contact.displayName ?? '').toList(),
+                            contacts: _selectedContacts
+                                .map((contact) => contact.displayName ?? '')
+                                .toList(),
                           );
                           TaskManager.addTask(newTask);
                           Navigator.of(context).pop();
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -155,7 +166,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
                       ),
                       child: Text(
                         'Save task',
-                        style: TextStyle(fontSize: 18, color: Colors.yellowAccent),
+                        style:
+                            TextStyle(fontSize: 18, color: Colors.yellowAccent),
                       ),
                     ),
                   ),
@@ -168,7 +180,10 @@ class _AddTaskModalState extends State<AddTaskModal> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {required TextEditingController controller, IconData? prefixIcon, String? Function(String?)? validator}) {
+  Widget _buildTextField(String label, String hint,
+      {required TextEditingController controller,
+      IconData? prefixIcon,
+      String? Function(String?)? validator}) {
     return Container(
       padding: EdgeInsets.all(3.0),
       decoration: BoxDecoration(
@@ -211,21 +226,24 @@ class _AddTaskModalState extends State<AddTaskModal> {
                 fontSize: 18,
               ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
             ),
-            validator: validator ?? (value) {
-              if (value == null || value.isEmpty) {
-                return 'This field cannot be empty';
-              }
-              return null;
-            },
+            validator: validator ??
+                (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'This field cannot be empty';
+                  }
+                  return null;
+                },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDatePickerField(String label, String hint, {required TextEditingController controller, IconData? prefixIcon}) {
+  Widget _buildDatePickerField(String label, String hint,
+      {required TextEditingController controller, IconData? prefixIcon}) {
     return GestureDetector(
       onTap: () async {
         DateTime? pickedDate = await showDatePicker(
@@ -242,12 +260,14 @@ class _AddTaskModalState extends State<AddTaskModal> {
         }
       },
       child: AbsorbPointer(
-        child: _buildTextField(label, hint, controller: controller, prefixIcon: prefixIcon),
+        child: _buildTextField(label, hint,
+            controller: controller, prefixIcon: prefixIcon),
       ),
     );
   }
 
-  Widget _buildTimePickerField(String label, String hint, {required TextEditingController controller, IconData? prefixIcon}) {
+  Widget _buildTimePickerField(String label, String hint,
+      {required TextEditingController controller, IconData? prefixIcon}) {
     return GestureDetector(
       onTap: () async {
         TimeOfDay? pickedTime = await showTimePicker(
@@ -262,7 +282,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
         }
       },
       child: AbsorbPointer(
-        child: _buildTextField(label, hint, controller: controller, prefixIcon: prefixIcon),
+        child: _buildTextField(label, hint,
+            controller: controller, prefixIcon: prefixIcon),
       ),
     );
   }
@@ -302,10 +323,12 @@ class _AddTaskModalState extends State<AddTaskModal> {
           DropdownButtonFormField<String>(
             value: _selectedPriority,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
               border: InputBorder.none,
             ),
-            items: ['High priority', 'Medium priority', 'Low priority'].map((priority) {
+            items: ['High priority', 'Medium priority', 'Low priority']
+                .map((priority) {
               return DropdownMenuItem<String>(
                 value: priority,
                 child: Text(priority),
@@ -357,7 +380,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
           DropdownButtonFormField<Contact>(
             value: _selectedContacts.isEmpty ? null : _selectedContacts.first,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
               border: InputBorder.none,
             ),
             items: _allContacts.map((contact) {
@@ -368,7 +392,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
             }).toList(),
             onChanged: (selectedContact) {
               setState(() {
-                if (selectedContact != null && !_selectedContacts.contains(selectedContact)) {
+                if (selectedContact != null &&
+                    !_selectedContacts.contains(selectedContact)) {
                   _selectedContacts.add(selectedContact);
                 }
               });

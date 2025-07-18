@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:taskmate/widgets/task_data.dart';
 import 'task_card.dart'; // Import your TaskCard class
-import 'add_task_popup.dart';// Import the utility file for getTasks
+// Import the utility file for getTasks
 
 class ViewTasksPopup extends StatefulWidget {
   final VoidCallback onAddTask;
@@ -78,13 +78,17 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                 Divider(thickness: 1),
                 SizedBox(height: 10),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center, // Center the chips
+                  mainAxisAlignment:
+                      MainAxisAlignment.center, // Center the chips
                   children: [
                     Wrap(
                       spacing: 30.0, // Adjust spacing between chips
                       children: [
                         ChoiceChip(
-                          label: Text('All', style: TextStyle(fontSize: 16),),
+                          label: Text(
+                            'All',
+                            style: TextStyle(fontSize: 16),
+                          ),
                           selected: _selectedCategory == 'All',
                           onSelected: (selected) {
                             setState(() {
@@ -92,12 +96,17 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                             });
                           },
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20), // Rounded corners
+                            borderRadius:
+                                BorderRadius.circular(20), // Rounded corners
                           ),
-                          visualDensity: VisualDensity.compact, // Reduce inner padding
+                          visualDensity:
+                              VisualDensity.compact, // Reduce inner padding
                         ),
                         ChoiceChip(
-                          label: Text('Completed', style: TextStyle(fontSize: 16),),
+                          label: Text(
+                            'Completed',
+                            style: TextStyle(fontSize: 16),
+                          ),
                           selected: _selectedCategory == 'Completed',
                           onSelected: (selected) {
                             setState(() {
@@ -105,12 +114,17 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                             });
                           },
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20), // Rounded corners
+                            borderRadius:
+                                BorderRadius.circular(20), // Rounded corners
                           ),
-                          visualDensity: VisualDensity.compact, // Reduce inner padding
+                          visualDensity:
+                              VisualDensity.compact, // Reduce inner padding
                         ),
                         ChoiceChip(
-                          label: Text('In progress', style: TextStyle(fontSize: 16),),
+                          label: Text(
+                            'In progress',
+                            style: TextStyle(fontSize: 16),
+                          ),
                           selected: _selectedCategory == 'In progress',
                           onSelected: (selected) {
                             setState(() {
@@ -118,15 +132,16 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                             });
                           },
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20), // Rounded corners
+                            borderRadius:
+                                BorderRadius.circular(20), // Rounded corners
                           ),
-                          visualDensity: VisualDensity.compact, // Reduce inner padding
+                          visualDensity:
+                              VisualDensity.compact, // Reduce inner padding
                         ),
                       ],
                     ),
                   ],
                 ),
-
                 SizedBox(height: 16),
                 Expanded(
                   child: ListView(
@@ -137,7 +152,6 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                   ),
                 ),
                 SizedBox(height: 16),
-
                 Container(
                   width: 220,
                   height: 50,
@@ -162,10 +176,7 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                     child: Center(
                       child: Text(
                         'Add task',
-                        style: TextStyle(
-                            fontSize: 23,
-                            fontFamily: 'Roboto'
-                        ),
+                        style: TextStyle(fontSize: 23, fontFamily: 'Roboto'),
                       ),
                     ),
                   ),

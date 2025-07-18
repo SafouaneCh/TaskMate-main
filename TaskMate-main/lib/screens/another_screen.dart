@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_button.dart';
 import 'another_screen2.dart';
-import 'welcome_screen.dart';
 import '../widgets/colors.dart';
 
 class AnotherScreen extends StatefulWidget {
