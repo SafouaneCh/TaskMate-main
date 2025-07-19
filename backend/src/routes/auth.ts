@@ -4,6 +4,9 @@ import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 import type { NewUser } from "../db/schema";
+import jwt from "jsonwebtoken";
+
+require('dotenv').config();
 
 const authRouter = Router();
 
@@ -56,6 +59,8 @@ interface LoginBody {
     password: string;
 }
 
+
+
 authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response) => {
     try{
         // get req body
@@ -74,7 +79,7 @@ authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response)
             return;
         }
 
-        //hashed pwd
+        //match password
         const isMatch = await bcryptjs.compare(password, existingUser.password);
         if(!isMatch){
             res
@@ -82,13 +87,63 @@ authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response)
             .json({ msg: "Invalid credentials!"});
             return;
         }
+        
+        let jwtSecret = process.env.JWT_SECRET;
+       if (!jwtSecret) {
+         throw new Error("JWT_SECRET is not defined in environment variables");
+       }
+       const token = jwt.sign({ id: existingUser.id }, jwtSecret);
 
-        res.json(existingUser);
+        res.json({ user: existingUser, token });
 
         }catch (e) {
         res.status(500).json({ error: e });
     }
 });
+
+authRouter.post("/tokenIsValid", async(req, res) => {
+    try {
+        // get the header
+        const token = req.header("x-auth-token");
+
+        if(!token) {
+            res.json(false);
+            return;
+        }
+
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+          throw new Error("JWT_SECRET is not defined in environment variables");
+        }
+        // verify if the token is valid
+        // Note : jwt.verify returns a jwt.JwtPayload object
+        const verified = jwt.verify(token, jwtSecret);
+
+        if(!verified) {
+            res.json(false);
+            return;
+        }
+
+        // get the user data if the token is valid
+        const verifiedToken = verified as {id: string};
+
+        const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, verifiedToken.id));
+
+        if(!user) {
+            res.json(false);
+            return;
+        }
+
+        res.json(true);
+
+
+    } catch (e) {
+        res.status(500).json(false);
+    }
+})
 
 authRouter.get("/",(req,res) => {
     res.send("Hey there! from auth");
