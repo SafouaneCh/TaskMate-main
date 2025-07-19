@@ -51,7 +51,47 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
     }
 });
 
+interface LoginBody {
+    email: string;
+    password: string;
+}
+
+authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response) => {
+    try{
+        // get req body
+        const{email, password} = req.body;
+
+        // check if user doesn't exist
+        const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
+
+        if (!existingUser){
+            res
+            .status(400)
+            .json({ msg: "User with the same email does not exist!"});
+            return;
+        }
+
+        //hashed pwd
+        const isMatch = await bcryptjs.compare(password, existingUser.password);
+        if(!isMatch){
+            res
+            .status(400)
+            .json({ msg: "Invalid credentials!"});
+            return;
+        }
+
+        res.json(existingUser);
+
+        }catch (e) {
+        res.status(500).json({ error: e });
+    }
+});
+
 authRouter.get("/",(req,res) => {
     res.send("Hey there! from auth");
 });
+
 export default authRouter;
