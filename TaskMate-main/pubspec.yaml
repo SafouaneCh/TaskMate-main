@@ -29,24 +29,22 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   contacts_service: ^0.6.1
-  permission_handler: ^10.2.0
-
+  cupertino_icons: ^1.0.6
   flutter:
     sdk: flutter
+  flutter_bloc: ^9.1.1
+  http: ^1.4.0
+  permission_handler: ^10.2.0
   provider: ^6.0.5
   shared_preferences: ^2.0.0
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.6
-
 dev_dependencies:
+  flutter_launcher_icons: ^0.10.0
+  flutter_svg: ^0.22.0
   flutter_test:
     sdk: flutter
-  flutter_svg: ^0.22.0
-  table_calendar: ^3.0.6
   intl: ^0.18.0
-  flutter_launcher_icons: ^0.10.0
+  table_calendar: ^3.0.6
 
 flutter_icons:
   android: true
@@ -61,7 +59,6 @@ flutter_icons:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
 # The following section is specific to Flutter packages.
 flutter:
 
@@ -77,8 +74,6 @@ flutter:
     - assets/icons/vector_left.svg
     - assets/images/
 
-
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -88,13 +83,10 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
-
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
-
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
-
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
@@ -114,20 +106,16 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-
-
   fonts:
-      - family: LeagueSpartan
-        fonts:
-          - asset: assets/fonts/LeagueSpartan-Black.ttf
-      - family: LeagueSpartanMedium
-        fonts:
-          - asset: assets/fonts/LeagueSpartan-Bold.ttf
-      - family: Roboto
-        fonts:
-          - asset: assets/fonts/Roboto-Medium.ttf
-      - family: Poppins
-        fonts:
-          - asset: assets/fonts/Poppins-Regular.ttf
-
-
+    - family: LeagueSpartan
+      fonts:
+        - asset: assets/fonts/LeagueSpartan-Black.ttf
+    - family: LeagueSpartanMedium
+      fonts:
+        - asset: assets/fonts/LeagueSpartan-Bold.ttf
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Medium.ttf
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
