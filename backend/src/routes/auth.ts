@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 import type { NewUser } from "../db/schema";
 import jwt from "jsonwebtoken";
+import { auth, AuthRequest } from "../middleware/auth";
 
 require('dotenv').config();
 
@@ -145,8 +146,19 @@ authRouter.post("/tokenIsValid", async(req, res) => {
     }
 })
 
-authRouter.get("/",(req,res) => {
-    res.send("Hey there! from auth");
+authRouter.get("/", auth, async (req: AuthRequest, res: Response) => {
+    try{
+        if (!req.user) {
+            res.status(401).json({error: "Unauthorized"});
+            return;
+        }
+
+        const [user] = await db.select().from(users).where(eq(users.id, req.user));
+        res.json({...user, token: req.token});
+
+    }catch(e){
+        res.status(500).json(false);
+    }
 });
 
 export default authRouter;
