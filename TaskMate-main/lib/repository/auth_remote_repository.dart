@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:taskmate/core/constants/constants.dart';
+import 'package:taskmate/models/user_model.dart';
 
 class AuthRemoteRepository {
-  Future<void> signUp({
+  Future<UserModel> signUp({
     required String name,
     required String email,
     required String password,
@@ -26,6 +27,8 @@ class AuthRemoteRepository {
       if (res.statusCode != 201) {
         throw jsonDecode(res.body)['error'];
       }
+
+      return UserModel.fromJson(jsonDecode(res.body));
     } catch (e) {
       throw e.toString();
     }
