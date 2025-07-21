@@ -2,7 +2,7 @@ class UserModel {
   final String id;
   final String email;
   final String name;
-  final String phone
+  final String phone;
   final String token;
   final DateTime createdAt;
   final DateTime updatedAt;
