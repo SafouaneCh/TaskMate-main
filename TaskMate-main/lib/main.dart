@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taskmate/cubit/auth_cubit.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -37,8 +39,13 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: _isFirstTime ? WelcomeScreen() : HomeScreen(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => AuthCubit()),
+      ],
+      child: MaterialApp(
+        home: _isFirstTime ? WelcomeScreen() : HomeScreen(),
+      ),
     );
   }
 }

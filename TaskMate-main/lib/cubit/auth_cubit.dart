@@ -17,14 +17,14 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       emit(AuthLoading());
 
-      final userModel = await authRemoteRepository.signUp(
+      await authRemoteRepository.signUp(
         name: name,
         email: email,
         password: password,
         phone: phone,
       );
 
-      emit(AuthLoggedIn(userModel));
+      emit(AuthSignUp());
     } catch (e) {
       emit(AuthError(e.toString()));
     }
