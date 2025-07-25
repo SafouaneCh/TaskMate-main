@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:contacts_service/contacts_service.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../widgets/ContactService.dart';
 import '../widgets/ContactProvider.dart';
 import '../widgets/task_card.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import 'package:taskmate/widgets/custom_bottom_bar.dart' as widget;
 import 'package:taskmate/screens/home_screen.dart';
 import 'package:taskmate/screens/calendar_screen.dart';
@@ -33,40 +31,35 @@ class ContactScreen extends StatefulWidget {
 }
 
 class _ContactScreenState extends State<ContactScreen> {
-  final ContactService _contactService = ContactService();
   final ContactProvider _contactProvider = ContactProvider();
-
   int _selectedIndex = 2;
   String _searchQuery = '';
+  bool _permissionDenied = false;
 
   @override
   void initState() {
     super.initState();
-    _getPermissionsAndFetchContacts();
+    _fetchContacts();
   }
 
-  Future<void> _getPermissionsAndFetchContacts() async {
-    PermissionStatus permissionStatus = await _contactService.getContactPermission();
-    if (permissionStatus == PermissionStatus.granted) {
-      List<Contact> contacts = await _contactService.fetchContacts();
-      setState(() {
-        _contactProvider.setContacts(contacts);
-      });
-    } else {
-      _handleInvalidPermissions(permissionStatus);
+  Future<void> _fetchContacts() async {
+    if (!await FlutterContacts.requestPermission(readonly: true)) {
+      setState(() => _permissionDenied = true);
+      return;
     }
+
+    final contacts = await FlutterContacts.getContacts();
+    setState(() {
+      _contactProvider.setContacts(contacts);
+    });
   }
 
-  void _handleInvalidPermissions(PermissionStatus permissionStatus) {
-    if (permissionStatus == PermissionStatus.denied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permission denied to access contacts')),
-      );
-    } else if (permissionStatus == PermissionStatus.permanentlyDenied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permission permanently denied. Please enable in settings.')),
-      );
-    }
+  void _handleInvalidPermissions() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Contact permissions denied. Please enable in settings.'),
+      ),
+    );
   }
 
   void _filterContacts(String query) {
@@ -111,7 +104,7 @@ class _ContactScreenState extends State<ContactScreen> {
           Column(
             children: [
               _buildAppBar(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildSearchBar(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -140,8 +133,11 @@ class _ContactScreenState extends State<ContactScreen> {
                   ),
                 ),
               ),
-              Divider(thickness: 1),
-              _buildContactList(),
+              const Divider(thickness: 1),
+              if (_permissionDenied)
+                _buildPermissionDeniedWidget()
+              else
+                _buildContactList(),
             ],
           ),
         ],
@@ -155,12 +151,33 @@ class _ContactScreenState extends State<ContactScreen> {
     );
   }
 
+  Widget _buildPermissionDeniedWidget() {
+    return Expanded(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Permission to access contacts was denied'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                await openAppSettings();
+                _fetchContacts();
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.transparent,
       automaticallyImplyLeading: false,
       elevation: 0,
-      title: Text(
+      title: const Text(
         'Contacts',
         style: TextStyle(
           color: Colors.black,
@@ -180,12 +197,12 @@ class _ContactScreenState extends State<ContactScreen> {
         onChanged: _filterContacts,
         decoration: InputDecoration(
           hintText: 'Search',
-          hintStyle: TextStyle(
+          hintStyle: const TextStyle(
             fontSize: 18,
             fontFamily: 'Roboto',
             color: Colors.grey,
           ),
-          prefixIcon: Icon(Icons.search),
+          prefixIcon: const Icon(Icons.search),
           fillColor: Colors.white,
           filled: true,
           border: OutlineInputBorder(
@@ -196,18 +213,28 @@ class _ContactScreenState extends State<ContactScreen> {
       ),
     );
   }
+
   Map<String, List<Contact>> _groupContactsByInitial() {
     Map<String, List<Contact>> groupedContacts = {};
     for (var contact in _contactProvider.filteredContacts) {
-      String initial = contact.displayName?.substring(0, 1).toUpperCase() ?? '';
+      String initial = contact.displayName.isNotEmpty
+          ? contact.displayName.substring(0, 1).toUpperCase()
+          : '';
       if (!groupedContacts.containsKey(initial)) {
         groupedContacts[initial] = [];
       }
       groupedContacts[initial]!.add(contact);
     }
-    return groupedContacts;
-  }
 
+    // Sort the map keys alphabetically
+    final sortedKeys = groupedContacts.keys.toList()..sort();
+    Map<String, List<Contact>> sortedMap = {};
+    for (var key in sortedKeys) {
+      sortedMap[key] = groupedContacts[key]!;
+    }
+
+    return sortedMap;
+  }
 
   Widget _buildContactList() {
     final groupedContacts = _groupContactsByInitial();
@@ -225,7 +252,7 @@ class _ContactScreenState extends State<ContactScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
                   initial,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 19,
                     color: Color(0xFF727F86),
                     fontWeight: FontWeight.bold,
@@ -237,16 +264,19 @@ class _ContactScreenState extends State<ContactScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: ListTile(
                     leading: CircleAvatar(
-                      child: Text(contact.initials()),
+                      child: Text(_getInitials(contact)),
                       backgroundColor: Colors.blueAccent,
                     ),
                     title: Text(
-                      contact.displayName ?? '',
-                      style: TextStyle(
+                      contact.displayName,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontFamily: 'Poppins',
                       ),
                     ),
+                    subtitle: contact.phones.isNotEmpty
+                        ? Text(contact.phones.first.number)
+                        : null,
                   ),
                 );
               }).toList(),
@@ -257,7 +287,16 @@ class _ContactScreenState extends State<ContactScreen> {
     );
   }
 
-
+  String _getInitials(Contact contact) {
+    if (contact.name.first.isEmpty && contact.name.last.isEmpty) {
+      return contact.displayName.isNotEmpty
+          ? contact.displayName.substring(0, 1).toUpperCase()
+          : '?';
+    }
+    return '${contact.name.first.isNotEmpty ? contact.name.first[0] : ''}'
+        '${contact.name.last.isNotEmpty ? contact.name.last[0] : ''}'
+        .toUpperCase();
+  }
 
   Widget _buildFloatingActionButton() {
     return GestureDetector(
@@ -265,7 +304,7 @@ class _ContactScreenState extends State<ContactScreen> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(27.5),
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment(0, -1),
             end: Alignment(0, 1),
             colors: <Color>[Color(0xFF074666), Color(0xFF0E81BD), Color(0xFFFFFFFF)],
@@ -275,7 +314,7 @@ class _ContactScreenState extends State<ContactScreen> {
         child: Container(
           width: 55,
           height: 55,
-          padding: EdgeInsets.all(18.5),
+          padding: const EdgeInsets.all(18.5),
           child: SvgPicture.asset(
             'assets/vectors/vector_7_x2.svg',
           ),

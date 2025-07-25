@@ -11,6 +11,11 @@ pluginManagement {
     includeBuild("${settings.ext.flutterSdkPath}/packages/flutter_tools/gradle")
 
     repositories {
+        // Add these repositories first for better network reliability
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+
         google()
         mavenCentral()
         gradlePluginPortal()
@@ -19,8 +24,10 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "7.3.0" apply false
-    id "org.jetbrains.kotlin.android" version "1.7.10" apply false
+    // UPDATED: Android Gradle Plugin from 7.3.0 → 8.3.2
+    id "com.android.application" version "8.3.2" apply false
+    // UPDATED: Kotlin version from 1.7.10 → 1.9.22
+    id "org.jetbrains.kotlin.android" version "1.9.22" apply false
 }
 
 include ":app"

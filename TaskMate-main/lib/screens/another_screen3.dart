@@ -21,7 +21,7 @@ class _AnotherScreenState extends State<AnotherScreen3> {
   }
 
   Future<void> _checkAndRequestContactPermission() async {
-    PermissionStatus permissionStatus = await _contactService.getContactPermission();
+    PermissionStatus permissionStatus = await _contactService.requestPermission();
 
     if (permissionStatus != PermissionStatus.granted) {
       _showPermissionDialog();

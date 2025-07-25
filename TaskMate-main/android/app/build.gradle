@@ -24,16 +24,22 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.taskmate"
-    compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    compileSdkVersion 34
+    ndkVersion "26.3.11579264"
+
+    // Add this namespace for resource linking
+    buildFeatures {
+        buildConfig true
+        resValues true
+    }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
@@ -41,22 +47,51 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.taskmate"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
+        minSdkVersion 21
+        targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
+
+        // Add these for AGP 8.x compatibility
+        vectorDrawables.useSupportLibrary = true
+        generatedDensities = []
+    }
+
+    // Add this block for dexing workaround
+    dexOptions {
+        javaMaxHeapSize "4g"
+        keepRuntimeAnnotatedClasses false
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // Add these for release builds
+            shrinkResources true
+            crunchPngs true
         }
+        debug {
+            signingConfig signingConfigs.debug
+            // Disable PNG crunching for faster builds
+            crunchPngs false
+        }
+    }
+
+    // Add this for packaging options
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/*.kotlin_module', 'META-INF/AL2.0', 'META-INF/LGPL2.1']
+        }
+    }
+
+    // Add this Kotlin toolchain specification
+    kotlin {
+        jvmToolchain(17)
     }
 }
 
@@ -64,4 +99,11 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10" // Explicit version
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    // Add these AndroidX core dependencies
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}

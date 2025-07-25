@@ -1,5 +1,29 @@
+buildscript {
+    // Define Kotlin version (must match settings.gradle)
+    ext.kotlin_version = '1.9.22'
+
+    repositories {
+        // Add mirror repositories first for reliability
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Android Gradle Plugin
+        classpath 'com.android.tools.build:gradle:8.3.2'
+        // Kotlin Gradle Plugin
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // Flutter Gradle Plugin (automatically applied when using flutter.gradle)
+    }
+}
+
 allprojects {
     repositories {
+        // Add mirror repositories first for reliability
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
         google()
         mavenCentral()
     }
