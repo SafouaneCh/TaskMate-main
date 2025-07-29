@@ -10,6 +10,8 @@ import '../widgets/task_data.dart'; // Ensure this import matches the location o
 import '../widgets/add_task_popup.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -354,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFFC3C0C0),
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        child: Container(
+                        child: SizedBox(
                           width: 53,
                           height: 5,
                         ),
@@ -393,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 55,
             height: 55,
             padding: EdgeInsets.all(18.5),
-            child: Container(
+            child: SizedBox(
               width: 31,
               height: 31,
               child: SizedBox(

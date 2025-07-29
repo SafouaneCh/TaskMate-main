@@ -7,7 +7,7 @@ import 'task_card.dart'; // Import your TaskCard class
 class ViewTasksPopup extends StatefulWidget {
   final VoidCallback onAddTask;
 
-  ViewTasksPopup({required this.onAddTask});
+  const ViewTasksPopup({super.key, required this.onAddTask});
 
   @override
   _ViewTasksPopupState createState() => _ViewTasksPopupState();
@@ -21,9 +21,9 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
     // Format the current date
     String formattedDate = DateFormat('MMMM d, yyyy').format(DateTime.now());
 
-    List<TaskCard> _tasks = TaskManager.getTasks(); // Use the getTasks function
+    List<TaskCard> tasks = TaskManager.getTasks(); // Use the getTasks function
 
-    List<TaskCard> _filteredTasks = _tasks.where((task) {
+    List<TaskCard> filteredTasks = tasks.where((task) {
       if (_selectedCategory == 'All') return true;
       if (_selectedCategory == 'Completed') return task.isCompleted;
       return !task.isCompleted;
@@ -148,7 +148,7 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                     controller: scrollController,
                     shrinkWrap: true,
                     physics: ClampingScrollPhysics(),
-                    children: _filteredTasks,
+                    children: filteredTasks,
                   ),
                 ),
                 SizedBox(height: 16),

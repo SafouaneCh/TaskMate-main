@@ -31,7 +31,7 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
         if (existingUser.length){
             res
             .status(400)
-            .json({ msg: "User with the same email already exists!"});
+            .json({ error: "User with the same email already exists!"});
             return;
         }
 
@@ -63,29 +63,28 @@ interface LoginBody {
 
 
 authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response) => {
-    try{
-        // get req body
-        const{email, password} = req.body;
+    try {
+        const { email, password } = req.body;
 
         // check if user doesn't exist
         const [existingUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email));
+            .select()
+            .from(users)
+            .where(eq(users.email, email));
 
-        if (!existingUser){
+        if (!existingUser) {
             res
-            .status(400)
-            .json({ msg: "User with the same email does not exist!"});
+                .status(401) // <-- Use 401 for unauthorized
+                .json({ error: "User with this email does not exist! Please sign up." });
             return;
         }
 
-        //match password
+        // match password
         const isMatch = await bcryptjs.compare(password, existingUser.password);
-        if(!isMatch){
+        if (!isMatch) {
             res
-            .status(400)
-            .json({ msg: "Invalid credentials!"});
+                .status(401) // <-- Use 401 for unauthorized
+                .json({ error: "Invalid credentials! Please try again or reset your password." });
             return;
         }
         

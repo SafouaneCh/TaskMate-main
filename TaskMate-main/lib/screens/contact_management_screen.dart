@@ -26,6 +26,8 @@ void showAddTaskModal(BuildContext context) {
 }
 
 class ContactScreen extends StatefulWidget {
+  const ContactScreen({super.key});
+
   @override
   _ContactScreenState createState() => _ContactScreenState();
 }
@@ -264,8 +266,8 @@ class _ContactScreenState extends State<ContactScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: ListTile(
                     leading: CircleAvatar(
-                      child: Text(_getInitials(contact)),
                       backgroundColor: Colors.blueAccent,
+                      child: Text(_getInitials(contact)),
                     ),
                     title: Text(
                       contact.displayName,
@@ -279,7 +281,7 @@ class _ContactScreenState extends State<ContactScreen> {
                         : null,
                   ),
                 );
-              }).toList(),
+              }),
             ],
           );
         }).toList(),

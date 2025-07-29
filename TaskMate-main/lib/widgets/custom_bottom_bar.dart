@@ -4,7 +4,7 @@ class CustomBottomBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
 
-  CustomBottomBar({
+  const CustomBottomBar({super.key, 
     required this.selectedIndex,
     required this.onItemTapped,
   });

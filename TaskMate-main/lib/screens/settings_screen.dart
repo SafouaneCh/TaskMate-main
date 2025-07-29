@@ -10,6 +10,8 @@ import '../widgets/add_task_popup.dart';
 import '../widgets/task_card.dart';
 
 class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }

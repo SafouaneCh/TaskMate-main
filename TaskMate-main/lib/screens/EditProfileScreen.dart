@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
 class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
+
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  TextEditingController _nameController = TextEditingController(text: 'Akram');
-  TextEditingController _phoneController = TextEditingController(text: '+212 691-817675');
-  TextEditingController _passwordController = TextEditingController(text: '************');
+  final TextEditingController _nameController = TextEditingController(text: 'Akram');
+  final TextEditingController _phoneController = TextEditingController(text: '+212 691-817675');
+  final TextEditingController _passwordController = TextEditingController(text: '************');
 
   @override
   Widget build(BuildContext context) {

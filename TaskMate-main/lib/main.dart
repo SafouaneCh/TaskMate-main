@@ -4,12 +4,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart'; // Add this import
+import 'screens/signup_screen.dart'; // Add this import
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -21,6 +25,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _checkFirstTime();
+    // Add this line to check for token and update AuthCubit state
+    Future.microtask(() {
+      context.read<AuthCubit>().getUserData();
+    });
   }
 
   Future<void> _checkFirstTime() async {
@@ -44,7 +52,22 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (_) => AuthCubit()),
       ],
       child: MaterialApp(
-        home: _isFirstTime ? WelcomeScreen() : HomeScreen(),
+        home: _isFirstTime
+            ? WelcomeScreen()
+            : BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) {
+                  if (state is AuthLoggedIn) {
+                    return HomeScreen();
+                  } else if (state is AuthSignUp) {
+                    return SignupScreen();
+                  } else if (state is AuthLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  } else {
+                    // AuthInitial, AuthError, or any other state
+                    return LoginScreen();
+                  }
+                },
+              ),
       ),
     );
   }

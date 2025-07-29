@@ -6,12 +6,14 @@ import 'login_screen.dart';
 import '../widgets/ContactService.dart'; // Import your ContactService class
 
 class AnotherScreen3 extends StatefulWidget {
+  const AnotherScreen3({super.key});
+
   @override
   _AnotherScreenState createState() => _AnotherScreenState();
 }
 
 class _AnotherScreenState extends State<AnotherScreen3> {
-  int _highlightedCircleIndex = 0;
+  final int _highlightedCircleIndex = 0;
   final ContactService _contactService = ContactService();
 
   @override

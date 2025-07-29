@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../widgets/task_data.dart';
 import '../widgets/task_card.dart';
 
 class AddTaskModal extends StatefulWidget {
   final void Function(TaskCard) onTaskAdded;
 
-  const AddTaskModal({required this.onTaskAdded});
+  const AddTaskModal({super.key, required this.onTaskAdded});
 
   @override
   _AddTaskModalState createState() => _AddTaskModalState();
@@ -20,7 +19,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
   String _selectedPriority = 'Medium priority';
-  List<Contact> _selectedContacts = [];
+  final List<Contact> _selectedContacts = [];
   List<Contact> _allContacts = [];
   bool _contactsLoading = true;
   bool _permissionDenied = false;

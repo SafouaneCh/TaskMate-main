@@ -54,7 +54,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
 
 
     } catch (e) {
-        res.status(500).json(false);
+        res.status(500).json({error: "Server error"});
     }
 
 }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class TaskCategoryChip extends StatelessWidget {
   final String label;
 
-  TaskCategoryChip({required this.label});
+  const TaskCategoryChip({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {

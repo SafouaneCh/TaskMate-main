@@ -5,7 +5,7 @@ class DateCard extends StatelessWidget {
   final String date;
   final bool isSelected;
 
-  DateCard({required this.day, required this.date, this.isSelected = false});
+  const DateCard({super.key, required this.day, required this.date, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {

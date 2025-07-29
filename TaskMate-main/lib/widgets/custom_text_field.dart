@@ -4,7 +4,7 @@ class CustomTextField extends StatelessWidget {
   final String hintText;
   final bool obscureText;
 
-  CustomTextField({required this.hintText, required this.obscureText});
+  const CustomTextField({super.key, required this.hintText, required this.obscureText});
 
   @override
   Widget build(BuildContext context) {

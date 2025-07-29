@@ -4,12 +4,14 @@ import 'another_screen3.dart';
 import '../widgets/colors.dart';
 
 class AnotherScreen2 extends StatefulWidget {
+  const AnotherScreen2({super.key});
+
   @override
   _AnotherScreenState createState() => _AnotherScreenState();
 }
 
 class _AnotherScreenState extends State<AnotherScreen2> {
-  int _highlightedCircleIndex = 0;
+  final int _highlightedCircleIndex = 0;
 
   @override
   Widget build(BuildContext context) {

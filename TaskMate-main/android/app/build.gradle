@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.taskmate"
-    compileSdkVersion 34
+    compileSdkVersion 35
     ndkVersion "26.3.11579264"
 
     // Add this namespace for resource linking

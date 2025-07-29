@@ -44,6 +44,8 @@ void showViewTasksPopup(BuildContext context) {
 
 
 class CalendarScreen extends StatefulWidget {
+  const CalendarScreen({super.key});
+
   @override
   _CalendarScreenState createState() => _CalendarScreenState();
 }
@@ -399,7 +401,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               width: 55,
               height: 55,
               padding: EdgeInsets.all(18.5),
-              child: Container(
+              child: SizedBox(
                 width: 31,
                 height: 31,
                 child: SizedBox(

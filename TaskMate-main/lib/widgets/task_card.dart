@@ -13,7 +13,7 @@ class TaskCard extends StatelessWidget {
   final String date; // Attribute for task date
   final List<String> contacts; // Attribute for task contacts
 
-  TaskCard({
+  const TaskCard({super.key, 
     required this.time,
     required this.description,
     required this.priority,
@@ -50,7 +50,6 @@ class _CardContent extends StatelessWidget {
   final List<String> contacts;
 
   const _CardContent({
-    Key? key,
     required this.time,
     required this.description,
     required this.priority,
@@ -58,7 +57,7 @@ class _CardContent extends StatelessWidget {
     required this.name,
     required this.date,
     required this.contacts,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,10 +119,9 @@ class _TimeAndPriority extends StatelessWidget {
   final String priority;
 
   const _TimeAndPriority({
-    Key? key,
     required this.time,
     required this.priority,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

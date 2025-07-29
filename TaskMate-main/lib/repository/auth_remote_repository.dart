@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:taskmate/core/constants/constants.dart';
+import 'package:taskmate/core/services/sp_service.dart';
 import 'package:taskmate/models/user_model.dart';
 
 class AuthRemoteRepository {
+  final SpService spService = SpService();
+
   Future<UserModel> signUp({
     required String name,
     required String email,
@@ -17,11 +20,15 @@ class AuthRemoteRepository {
         Uri.parse(
           '${Constants.backendUri}/auth/signup',
         ),
-
-        // The header specify that the req body will be JSON
         headers: {
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'phone': phone,
+        }),
       );
 
       if (res.statusCode != 201) {
@@ -31,6 +38,79 @@ class AuthRemoteRepository {
       return UserModel.fromJson(jsonDecode(res.body));
     } catch (e) {
       throw e.toString();
+    }
+  }
+
+  Future<UserModel> login({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // we make the http POST request
+      final res = await http.post(
+        Uri.parse(
+          '${Constants.backendUri}/auth/login',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (res.statusCode != 200) {
+        throw jsonDecode(res.body)['error'];
+      }
+
+      return UserModel.fromJson(jsonDecode(res.body));
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  Future<UserModel?> getUserData() async {
+    try {
+      final token = await spService.getToken();
+      if (token == null) {
+        throw 'No token found! Please login first.';
+      }
+      // we make the http POST request
+      final res = await http.post(
+        Uri.parse(
+          '${Constants.backendUri}/auth/TokenIsValid',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+      );
+
+      if (res.statusCode != 200) {
+        return null;
+      }
+
+      final userResponse = await http.get(
+        Uri.parse(
+          '${Constants.backendUri}/auth',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+      );
+
+      if (userResponse.statusCode != 200 ||
+          jsonDecode(userResponse.body) == false) {
+        return null;
+      }
+
+      return UserModel.fromJson(jsonDecode(userResponse.body));
+    } catch (e) {
+      return null;
     }
   }
 }

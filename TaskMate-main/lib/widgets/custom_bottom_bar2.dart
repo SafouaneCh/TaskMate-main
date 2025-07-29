@@ -5,7 +5,7 @@ class CustomBottomBar2 extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
 
-  CustomBottomBar2({required this.selectedIndex, required this.onItemTapped});
+  const CustomBottomBar2({super.key, required this.selectedIndex, required this.onItemTapped});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class CustomBottomBarContent extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
 
-  CustomBottomBarContent({required this.selectedIndex, required this.onItemTapped});
+  const CustomBottomBarContent({super.key, required this.selectedIndex, required this.onItemTapped});
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +92,7 @@ class SvgIcon extends StatelessWidget {
   final double height;
   final EdgeInsets? margin;
 
-  const SvgIcon({
+  const SvgIcon({super.key, 
     required this.assetPath,
     required this.width,
     required this.height,
