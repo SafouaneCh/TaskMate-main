@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:taskmate/core/constants/constants.dart';
 import 'package:taskmate/core/services/sp_service.dart';
 import 'package:taskmate/models/user_model.dart';
+import 'package:taskmate/repository/auth_local_repository.dart';
 
 class AuthRemoteRepository {
   final SpService spService = SpService();
+  final authLocalRepository = AuthLocalRepository();
 
   Future<UserModel> signUp({
     required String name,
@@ -110,7 +112,10 @@ class AuthRemoteRepository {
 
       return UserModel.fromJson(jsonDecode(userResponse.body));
     } catch (e) {
-      return null;
+      final user = await authLocalRepository.getUser();
+      if (user != null) {
+        return user;
+      }
     }
   }
 }

@@ -32,6 +32,7 @@ class _SignupScreenState extends State<SignupScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0),
             child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
               child: BlocConsumer<AuthCubit, AuthState>(
                 listener: (context, state) {
                   if (state is AuthError) {
@@ -56,6 +57,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   }
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Image.asset('assets/logo.png', height: 100),
                       SizedBox(height: 20),

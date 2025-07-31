@@ -8,7 +8,8 @@ import 'screens/login_screen.dart'; // Add this import
 import 'screens/signup_screen.dart'; // Add this import
 
 void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -20,14 +21,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isFirstTime = true;
+  final AuthCubit _authCubit = AuthCubit();
 
   @override
   void initState() {
     super.initState();
     _checkFirstTime();
-    // Add this line to check for token and update AuthCubit state
-    Future.microtask(() {
-      context.read<AuthCubit>().getUserData();
+    // Initialize auth after the widget is fully built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _authCubit.getUserData();
     });
   }
 
@@ -49,9 +51,10 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => AuthCubit()),
+        BlocProvider.value(value: _authCubit),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: _isFirstTime
             ? WelcomeScreen()
             : BlocBuilder<AuthCubit, AuthState>(
