@@ -18,14 +18,15 @@ export const tasks = pgTable("tasks", {
     name: text("name").notNull(),
     description: text("description").notNull(),
     dueAt: timestamp("due_at").$defaultFn(() => new Date(Date.now() + 7*24*60*60*1000)),
-    status: text("status").notNull().default("peding"),
+    status: text("status").notNull().default("pending"),
     // onDelete: "cascade" means when the main table "users" was deleted, the uid should be deleted also
     uid: uuid("user_id").references(() => users.id, {
         onDelete: "cascade",
     }),
+    priority: text("priority").notNull().default("Medium priority").$type<"High priority" | "Medium priority" | "Low priority">(),
+    contact: text("contact").default("null"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
-    contact: text("contact").default("null"),
 });
 
 export type Task = typeof tasks.$inferSelect;

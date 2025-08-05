@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:taskmate/cubit/add_new_task_cubit.dart';
+import 'package:taskmate/cubit/auth_cubit.dart';
 import '../widgets/task_card.dart';
 
 class AddTaskModal extends StatefulWidget {
@@ -63,114 +66,130 @@ class _AddTaskModalState extends State<AddTaskModal> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: BlocConsumer<AddNewTaskCubit, AddNewTaskState>(
+          listener: (context, state) {
+            if (state is AddNewTakSucess) {
+              Navigator.of(context).pop();
+            } else if (state is AddNewTakError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.error)),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is AddNewTakLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Color(0xFF4A5053),
-                            fontFamily: 'Roboto',
-                            fontSize: 22,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: Color(0xFF4A5053),
+                                fontFamily: 'Roboto',
+                                fontSize: 22,
+                              ),
+                            ),
                           ),
-                        ),
+                          const Text(
+                            'Add task',
+                            style: TextStyle(
+                              fontFamily: 'Roboto',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 25,
+                              color: Colors.black,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _saveTask,
+                            child: const Text(
+                              'Done',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                color: Color(0xFF009DFF),
+                                fontSize: 22,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const Text(
-                        'Add task',
-                        style: TextStyle(
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 25,
-                          color: Colors.black,
-                        ),
+                      const SizedBox(height: 30),
+                      _buildTextField(
+                        'Task name',
+                        'Enter your Task name',
+                        controller: _nameController,
+                        prefixIcon: Icons.task,
                       ),
-                      TextButton(
-                        onPressed: _saveTask,
-                        child: const Text(
-                          'Done',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            color: Color(0xFF009DFF),
-                            fontSize: 22,
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        'Task description',
+                        'Enter your Task prompt',
+                        controller: _descriptionController,
+                        prefixIcon: Icons.notes,
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDatePickerField(
+                              'Date',
+                              '2024-09-01',
+                              controller: _dateController,
+                              prefixIcon: Icons.calendar_today,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildTimePickerField(
+                              'Time',
+                              '14:00',
+                              controller: _timeController,
+                              prefixIcon: Icons.access_time,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildPriorityDropdown(),
+                      const SizedBox(height: 20),
+                      _buildContactField(),
+                      const SizedBox(height: 30),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _saveTask,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            backgroundColor: const Color(0xFF074666),
+                          ),
+                          child: const Text(
+                            'Save task',
+                            style: TextStyle(
+                                fontSize: 18, color: Colors.yellowAccent),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
-                  _buildTextField(
-                    'Task name',
-                    'Enter your Task name',
-                    controller: _nameController,
-                    prefixIcon: Icons.task,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    'Task description',
-                    'Enter your Task prompt',
-                    controller: _descriptionController,
-                    prefixIcon: Icons.notes,
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDatePickerField(
-                          'Date',
-                          '2024-09-01',
-                          controller: _dateController,
-                          prefixIcon: Icons.calendar_today,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildTimePickerField(
-                          'Time',
-                          '14:00',
-                          controller: _timeController,
-                          prefixIcon: Icons.access_time,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  _buildPriorityDropdown(),
-                  const SizedBox(height: 20),
-                  _buildContactField(),
-                  const SizedBox(height: 30),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _saveTask,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 15, horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        backgroundColor: const Color(0xFF074666),
-                      ),
-                      child: const Text(
-                        'Save task',
-                        style: TextStyle(
-                            fontSize: 18, color: Colors.yellowAccent),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -178,28 +197,30 @@ class _AddTaskModalState extends State<AddTaskModal> {
 
   void _saveTask() {
     if (_formKey.currentState!.validate()) {
-      final newTask = TaskCard(
-        time: _timeController.text,
-        description: _descriptionController.text,
-        priority: _selectedPriority,
-        isCompleted: false,
+      final authState = context.read<AuthCubit>().state;
+      String? token;
+      if (authState is AuthLoggedIn) {
+        token = authState.user.token;
+      }
+      BlocProvider.of<AddNewTaskCubit>(context).createNewTask(
         name: _nameController.text,
+        description: _descriptionController.text,
         date: _dateController.text,
-        contacts: _selectedContacts
-            .map((contact) => contact.displayName)
-            .toList(),
+        time: _timeController.text,
+        priority: _selectedPriority,
+        contacts: _selectedContacts,
+        token: token ?? '',
       );
-      widget.onTaskAdded(newTask);
       Navigator.of(context).pop();
     }
   }
 
   Widget _buildTextField(
-      String label,
-      String hint, {
-        required TextEditingController controller,
-        IconData? prefixIcon,
-      }) {
+    String label,
+    String hint, {
+    required TextEditingController controller,
+    IconData? prefixIcon,
+  }) {
     return Container(
       padding: const EdgeInsets.all(3.0),
       decoration: BoxDecoration(
@@ -243,7 +264,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
               ),
               border: InputBorder.none,
               contentPadding:
-              const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -258,11 +279,11 @@ class _AddTaskModalState extends State<AddTaskModal> {
   }
 
   Widget _buildDatePickerField(
-      String label,
-      String hint, {
-        required TextEditingController controller,
-        IconData? prefixIcon,
-      }) {
+    String label,
+    String hint, {
+    required TextEditingController controller,
+    IconData? prefixIcon,
+  }) {
     return GestureDetector(
       onTap: () async {
         final pickedDate = await showDatePicker(
@@ -290,11 +311,11 @@ class _AddTaskModalState extends State<AddTaskModal> {
   }
 
   Widget _buildTimePickerField(
-      String label,
-      String hint, {
-        required TextEditingController controller,
-        IconData? prefixIcon,
-      }) {
+    String label,
+    String hint, {
+    required TextEditingController controller,
+    IconData? prefixIcon,
+  }) {
     return GestureDetector(
       onTap: () async {
         final pickedTime = await showTimePicker(
@@ -304,7 +325,9 @@ class _AddTaskModalState extends State<AddTaskModal> {
 
         if (pickedTime != null) {
           setState(() {
-            controller.text = pickedTime.format(context);
+            final hour = pickedTime.hour.toString().padLeft(2, '0');
+            final minute = pickedTime.minute.toString().padLeft(2, '0');
+            controller.text = '$hour:$minute:00';
           });
         }
       },
@@ -355,7 +378,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
             value: _selectedPriority,
             decoration: const InputDecoration(
               contentPadding:
-              EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
               border: InputBorder.none,
             ),
             items: ['High priority', 'Medium priority', 'Low priority']
@@ -428,46 +451,46 @@ class _AddTaskModalState extends State<AddTaskModal> {
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
-              DropdownButtonFormField<Contact>(
-                value: null,
-                decoration: const InputDecoration(
-                  contentPadding:
-                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
-                  border: InputBorder.none,
-                  hintText: 'Select contacts',
-                ),
-                items: _allContacts.map((contact) {
-                  return DropdownMenuItem<Contact>(
-                    value: contact,
-                    child: Text(contact.displayName),
+            DropdownButtonFormField<Contact>(
+              value: null,
+              decoration: const InputDecoration(
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+                border: InputBorder.none,
+                hintText: 'Select contacts',
+              ),
+              items: _allContacts.map((contact) {
+                return DropdownMenuItem<Contact>(
+                  value: contact,
+                  child: Text(contact.displayName),
+                );
+              }).toList(),
+              onChanged: (selectedContact) {
+                if (selectedContact != null &&
+                    !_selectedContacts.contains(selectedContact)) {
+                  setState(() {
+                    _selectedContacts.add(selectedContact);
+                  });
+                }
+              },
+            ),
+            if (_selectedContacts.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8.0,
+                children: _selectedContacts.map((contact) {
+                  return Chip(
+                    label: Text(contact.displayName),
+                    onDeleted: () {
+                      setState(() {
+                        _selectedContacts.remove(contact);
+                      });
+                    },
                   );
                 }).toList(),
-                onChanged: (selectedContact) {
-                  if (selectedContact != null &&
-                      !_selectedContacts.contains(selectedContact)) {
-                    setState(() {
-                      _selectedContacts.add(selectedContact);
-                    });
-                  }
-                },
               ),
-              if (_selectedContacts.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8.0,
-                  children: _selectedContacts.map((contact) {
-                    return Chip(
-                      label: Text(contact.displayName),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedContacts.remove(contact);
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
             ],
+          ],
         ],
       ),
     );

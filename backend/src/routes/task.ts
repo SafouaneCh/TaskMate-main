@@ -11,7 +11,9 @@ const taskRouter = Router();
 
 taskRouter.post("/", auth, async (req: AuthRequest, res) => {
     try {
-        req.body = {...req.body, uid: req.user!};
+        // Combine date and time strings from frontend into a single Date object
+        const dueAtDateTime = new Date(req.body.date + 'T' + req.body.time);
+        req.body = {...req.body, dueAt: dueAtDateTime, uid: req.user!};
         //create a new task in db
         const newTask: NewTask = req.body;
         // calling properties

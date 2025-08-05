@@ -20,14 +20,18 @@ dependencies:
   flutter_svg: ^2.0.10  # UPDATED: Critical fix for build errors
   sqflite: ^2.4.2
   path: ^1.9.1
+  
 
-dev_dependencies:
   flutter_launcher_icons: ^0.14.4  # UPDATED: Compatible with Flutter 3.32
+  json_annotation: ^4.8.1 # Added for JSON serialization
+dev_dependencies:
   flutter_test:
-    sdk: flutter
+    sdk: flutter # Corrected declaration
   intl: ^0.20.2
   table_calendar: ^3.0.9  # UPDATED: Latest compatible version
   flutter_lints: ^6.0.0
+  build_runner: ^2.4.6 # Added for code generation
+  json_serializable: ^6.7.1 # Added for JSON serialization
 
 flutter_icons:
   android: true

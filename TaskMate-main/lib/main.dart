@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
+import 'package:taskmate/cubit/add_new_task_cubit.dart'; // Import AddNewTaskCubit
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart'; // Add this import
@@ -49,9 +50,12 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    print('AuthCubit state in build: ' + _authCubit.state.toString());
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _authCubit),
+        BlocProvider(
+            create: (context) => AddNewTaskCubit()), // Add AddNewTaskCubit
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

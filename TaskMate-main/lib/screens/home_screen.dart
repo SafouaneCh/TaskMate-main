@@ -7,6 +7,8 @@ import 'calendar_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/custom_bottom_bar.dart';
 import '../widgets/task_data.dart'; // Ensure this import matches the location of your task_data.dart
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/add_new_task_cubit.dart';
 import '../widgets/add_task_popup.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -67,12 +69,15 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AddTaskModal(
-          onTaskAdded: (newTask) {
-            setState(() {
-              TaskManager.addTask(newTask); // Add task to TaskManager
-            });
-          },
+        return BlocProvider<AddNewTaskCubit>(
+          create: (context) => AddNewTaskCubit(), // Provide your cubit instance
+          child: AddTaskModal(
+            onTaskAdded: (newTask) {
+              setState(() {
+                TaskManager.addTask(newTask); // Add task to TaskManager
+              });
+            },
+          ),
         );
       },
     );
