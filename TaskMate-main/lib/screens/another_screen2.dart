@@ -11,88 +11,114 @@ class AnotherScreen2 extends StatefulWidget {
 }
 
 class _AnotherScreenState extends State<AnotherScreen2> {
-  final int _highlightedCircleIndex = 0;
+  final int _highlightedCircleIndex = 1;
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+    
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/Copy of Welcome - 1.jpg'),
-            fit: BoxFit.cover,
+      body: SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/Copy of Welcome - 1.jpg'),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 50.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Spacer(flex: 2),
-              Text(
-                'AI-Powered Task Analysis',
-                style: TextStyle(
-                  fontFamily: 'LeagueSpartan',
-                  fontSize: 48,
-                  color: yellow1,
-                  height: 1,
-                ),
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: screenHeight - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
               ),
-              Spacer(flex: 1),
-              Text(
-                'TaskMate uses AI to analyze your task messages and automatically extract key details such as the person, time, and task.',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontFamily: 'LeagueSpartanMedium',
-                  fontSize: 33,
-                  color: blue1,
-                  height: 1.2,
-                ),
-              ),
-              Spacer(flex: 2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildCircle(1),
-                  SizedBox(width: 10),
-                  _buildCircle(0),
-                  SizedBox(width: 10),
-                  _buildCircle(2),
-                ],
-              ),
-              Spacer(flex: 1),
-              Column(
-                children: [
-                  Align(
-                    alignment: Alignment.center,
-                    child: CustomButton(
-                      text: 'Next',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => AnotherScreen3()),
-                        );
-                      },
-                    ),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(height: screenHeight * 0.1),
+                      
+                      Text(
+                        'AI-Powered Task Analysis',
+                        style: TextStyle(
+                          fontFamily: 'LeagueSpartan',
+                          fontSize: screenWidth * 0.12,
+                          color: yellow1,
+                          height: 1,
+                        ),
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.05),
+                      
+                      Text(
+                        'TaskMate uses AI to analyze your task messages and automatically extract key details such as the person, time, and task.',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontFamily: 'LeagueSpartanMedium',
+                          fontSize: screenWidth * 0.08,
+                          color: blue1,
+                          height: 1.2,
+                        ),
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.1),
+                      
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildCircle(0, screenWidth),
+                          SizedBox(width: screenWidth * 0.02),
+                          _buildCircle(1, screenWidth),
+                          SizedBox(width: screenWidth * 0.02),
+                          _buildCircle(2, screenWidth),
+                        ],
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.05),
+                      
+                      Column(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                text: 'Next',
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => AnotherScreen3()),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                        ],
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.1),
+                    ],
                   ),
-                  SizedBox(height: 20), // Add spacing between buttons
-                ],
+                ),
               ),
-              Spacer(
-                  flex:
-                      1), // Adding a Spacer to ensure flexible spacing at the bottom
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCircle(int index) {
+  Widget _buildCircle(int index, double screenWidth) {
     return Container(
-      width: 10,
-      height: 10,
+      width: screenWidth * 0.025,
+      height: screenWidth * 0.025,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: _highlightedCircleIndex == index ? Colors.white : Colors.grey,

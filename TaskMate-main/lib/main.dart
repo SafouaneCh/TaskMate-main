@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
 import 'package:taskmate/cubit/add_new_task_cubit.dart'; // Import AddNewTaskCubit
+import 'package:taskmate/cubit/tasks_cubit.dart'; // Import TasksCubit
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart'; // Add this import
@@ -22,12 +23,17 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isFirstTime = true;
+  bool _isInitialized = false;
   final AuthCubit _authCubit = AuthCubit();
 
   @override
   void initState() {
     super.initState();
-    _checkFirstTime();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await _checkFirstTime();
     // Initialize auth after the widget is fully built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _authCubit.getUserData();
@@ -45,17 +51,58 @@ class _MyAppState extends State<MyApp> {
 
     setState(() {
       _isFirstTime = isFirstTime;
+      _isInitialized = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     print('AuthCubit state in build: ' + _authCubit.state.toString());
+
+    // Show loading screen while initializing
+    if (!_isInitialized) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/Copy of Welcome - 1.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/logo.png', height: 100),
+                  SizedBox(height: 30),
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Loading...',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _authCubit),
         BlocProvider(
             create: (context) => AddNewTaskCubit()), // Add AddNewTaskCubit
+        BlocProvider(create: (context) => TasksCubit()), // Add TasksCubit
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -68,7 +115,38 @@ class _MyAppState extends State<MyApp> {
                   } else if (state is AuthSignUp) {
                     return SignupScreen();
                   } else if (state is AuthLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return Scaffold(
+                      body: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage('assets/Copy of Welcome - 1.jpg'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset('assets/logo.png', height: 100),
+                              SizedBox(height: 30),
+                              CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                              SizedBox(height: 20),
+                              Text(
+                                'Checking authentication...',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
                   } else {
                     // AuthInitial, AuthError, or any other state
                     return LoginScreen();

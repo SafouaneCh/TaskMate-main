@@ -18,6 +18,10 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+    
     // Format the current date
     String formattedDate = DateFormat('MMMM d, yyyy').format(DateTime.now());
 
@@ -35,157 +39,249 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
       builder: (BuildContext context, ScrollController scrollController) {
         return Material(
           color: Colors.transparent,
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+          child: SafeArea(
+            child: Container(
+              width: screenWidth,
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(screenWidth * 0.04),
+                  topRight: Radius.circular(screenWidth * 0.04),
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(
+                    child: Container(
+                      width: screenWidth * 0.1,
+                      height: screenHeight * 0.005,
+                      margin: EdgeInsets.only(bottom: screenHeight * 0.02),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400],
+                        borderRadius: BorderRadius.circular(screenWidth * 0.005),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.star,
+                          color: Colors.amber, size: screenWidth * 0.075),
+                      SizedBox(width: screenWidth * 0.02),
+                      Text(
+                        formattedDate,
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.067,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  Divider(thickness: 1),
+                  SizedBox(height: screenHeight * 0.01),
+                  // Category filter buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildCategoryButton('All', screenWidth, screenHeight),
+                      _buildCategoryButton(
+                          'Completed', screenWidth, screenHeight),
+                      _buildCategoryButton('Pending', screenWidth, screenHeight),
+                    ],
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  // Tasks list
+                  Expanded(
+                    child: filteredTasks.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.task_alt,
+                                  size: screenWidth * 0.15,
+                                  color: Colors.grey[400],
+                                ),
+                                SizedBox(height: screenHeight * 0.02),
+                                Text(
+                                  'No tasks found',
+                                  style: TextStyle(
+                                    fontSize: screenWidth * 0.05,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(height: screenHeight * 0.01),
+                                Text(
+                                  'Add a new task to get started',
+                                  style: TextStyle(
+                                    fontSize: screenWidth * 0.04,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: scrollController,
+                            itemCount: filteredTasks.length,
+                            itemBuilder: (context, index) {
+                              final task = filteredTasks[index];
+                              return Container(
+                                margin:
+                                    EdgeInsets.only(bottom: screenHeight * 0.015),
+                                padding: EdgeInsets.all(screenWidth * 0.04),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius:
+                                      BorderRadius.circular(screenWidth * 0.025),
+                                  border: Border.all(
+                                    color: Colors.grey[300]!,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Checkbox(
+                                      value: task.isCompleted,
+                                      onChanged: (value) {
+                                        // Note: TaskCard is immutable, so we can't modify isCompleted directly
+                                        // In a real app, you would update the task in the data source
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                'Task completion status updated'),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            task.name,
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.045,
+                                              fontWeight: FontWeight.bold,
+                                              decoration: task.isCompleted
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                            ),
+                                          ),
+                                          if (task.description.isNotEmpty)
+                                            Text(
+                                              task.description,
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.04,
+                                                color: Colors.grey[600],
+                                                decoration: task.isCompleted
+                                                    ? TextDecoration.lineThrough
+                                                    : null,
+                                              ),
+                                            ),
+                                          SizedBox(height: screenHeight * 0.005),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_today,
+                                                size: screenWidth * 0.04,
+                                                color: Colors.grey[600],
+                                              ),
+                                              SizedBox(width: screenWidth * 0.01),
+                                              Text(
+                                                '${task.date} ${task.time}',
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.035,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  Container(
+                    width: screenWidth * 0.55,
+                    height: screenHeight * 0.06,
                     decoration: BoxDecoration(
-                      color: Colors.grey[400],
-                      borderRadius: BorderRadius.circular(2),
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF073F5C), Color(0xFF0F85C2)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(screenWidth * 0.075),
                     ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.star, color: Colors.amber, size: 30),
-                    SizedBox(width: 8),
-                    Text(
-                      formattedDate,
-                      style: TextStyle(
-                        fontSize: 27,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    child: TextButton(
+                      onPressed: widget.onAddTask,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Color(0xFFFFF0B6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(screenWidth * 0.075),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Add task',
+                          style: TextStyle(
+                              fontSize: screenWidth * 0.057,
+                              fontFamily: 'Roboto'),
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Divider(thickness: 1),
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center, // Center the chips
-                  children: [
-                    Wrap(
-                      spacing: 30.0, // Adjust spacing between chips
-                      children: [
-                        ChoiceChip(
-                          label: Text(
-                            'All',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          selected: _selectedCategory == 'All',
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = 'All';
-                            });
-                          },
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(20), // Rounded corners
-                          ),
-                          visualDensity:
-                              VisualDensity.compact, // Reduce inner padding
-                        ),
-                        ChoiceChip(
-                          label: Text(
-                            'Completed',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          selected: _selectedCategory == 'Completed',
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = 'Completed';
-                            });
-                          },
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(20), // Rounded corners
-                          ),
-                          visualDensity:
-                              VisualDensity.compact, // Reduce inner padding
-                        ),
-                        ChoiceChip(
-                          label: Text(
-                            'In progress',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          selected: _selectedCategory == 'In progress',
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = 'Others';
-                            });
-                          },
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(20), // Rounded corners
-                          ),
-                          visualDensity:
-                              VisualDensity.compact, // Reduce inner padding
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    shrinkWrap: true,
-                    physics: ClampingScrollPhysics(),
-                    children: filteredTasks,
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  width: 220,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF073F5C), Color(0xFF0F85C2)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: TextButton(
-                    onPressed: widget.onAddTask,
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Color(0xFFFFF0B6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Add task',
-                        style: TextStyle(fontSize: 23, fontFamily: 'Roboto'),
-                      ),
-                    ),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCategoryButton(
+      String category, double screenWidth, double screenHeight) {
+    final isSelected = _selectedCategory == category;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedCategory = category;
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.04,
+          vertical: screenHeight * 0.01,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? Color(0xFF073F5C) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(screenWidth * 0.025),
+        ),
+        child: Text(
+          category,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontSize: screenWidth * 0.04,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
     );
   }
 }

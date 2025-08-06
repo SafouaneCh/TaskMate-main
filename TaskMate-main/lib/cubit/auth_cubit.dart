@@ -14,15 +14,21 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       emit(AuthLoading());
 
-      final userModel = await authRemoteRepository.getUserData();
+      // Add a timeout to prevent infinite loading
+      final userModel = await authRemoteRepository
+          .getUserData()
+          .timeout(Duration(seconds: 10));
 
       if (userModel != null) {
         emit(AuthLoggedIn(userModel));
+      } else {
+        // If no user data found, go to login
+        emit(AuthInitial());
       }
-
-      emit(AuthInitial());
     } catch (e) {
-      emit(AuthError(e.toString()));
+      print('Error getting user data: $e');
+      // If there's an error (network issue, etc.), go to login screen
+      emit(AuthInitial());
     }
   }
 

@@ -2,24 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
 import '../widgets/colors.dart';
-import 'home_screen.dart';
+import 'home_screen.dart' as home;
 import '../widgets/custom_button.dart';
 import 'signup_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Controllers for text fields
-    final nameController = TextEditingController();
-    final emailController = TextEditingController(); // <-- Add emailController
-    final passwordController = TextEditingController();
+  _LoginScreenState createState() => _LoginScreenState();
+}
 
-    return BlocProvider(
-      create: (_) => AuthCubit(),
-      child: Scaffold(
-        body: Container(
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
           decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage('assets/Copy of Welcome - 1.jpg'),
@@ -27,90 +36,22 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
           child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(height: 60),
-                  Image.asset('assets/logo.png', height: 100),
-                  SizedBox(height: 20),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: 'Create your own ',
-                          style: TextStyle(
-                            fontFamily: 'LeagueSpartan',
-                            fontSize: 55,
-                            color: blue1,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'life reminder',
-                          style: TextStyle(
-                            fontFamily: 'LeagueSpartan',
-                            fontSize: 55,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(
-                          text: '!',
-                          style: TextStyle(
-                            fontFamily: 'LeagueSpartan',
-                            fontSize: 55,
-                            color: blue1,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'Stay connected, stay organized',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'LeagueSpartanMedium',
-                      fontSize: 22,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  buildTextField('Username', 'Enter your name',
-                      controller: nameController),
-                  SizedBox(height: 20),
-                  buildTextField(
-                      'Email', 'Enter your email', // <-- Change label
-                      controller: emailController), // <-- Use emailController
-                  SizedBox(height: 20),
-                  buildTextField('Password', 'Enter your password',
-                      controller: passwordController, obscureText: true),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Checkbox(value: false, onChanged: (value) {}),
-                      Text(
-                        'Forgot password !',
-                        style: TextStyle(
-                          fontFamily: 'LeagueSpartan',
-                          fontSize: 22,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  BlocConsumer<AuthCubit, AuthState>(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: screenHeight -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+                  child: BlocConsumer<AuthCubit, AuthState>(
                     listener: (context, state) {
                       if (state is AuthLoggedIn) {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => home.HomeScreen()),
                         );
                       } else if (state is AuthError) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -120,40 +61,233 @@ class LoginScreen extends StatelessWidget {
                     },
                     builder: (context, state) {
                       if (state is AuthLoading) {
-                        return CircularProgressIndicator();
+                        return Center(child: CircularProgressIndicator());
                       }
-                      return CustomButton(
-                        text: 'Login',
-                        onPressed: () {
-                          BlocProvider.of<AuthCubit>(context).login(
-                            name: nameController.text.trim(),
-                            email: emailController.text
-                                .trim(), // <-- Use emailController
-                            password: passwordController.text.trim(),
-                          );
-                        },
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          SizedBox(height: screenHeight * 0.05),
+
+                          Container(
+                            height: screenHeight * 0.12,
+                            constraints: BoxConstraints(
+                              maxHeight: 100,
+                              minHeight: 80,
+                            ),
+                            child: Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+
+                          SizedBox(height: screenHeight * 0.03),
+
+                          RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: 'Create your own ',
+                                  style: TextStyle(
+                                    fontFamily: 'LeagueSpartan',
+                                    fontSize: screenWidth * 0.06,
+                                    color: blue1,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'life reminder',
+                                  style: TextStyle(
+                                    fontFamily: 'LeagueSpartan',
+                                    fontSize: screenWidth * 0.06,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '!',
+                                  style: TextStyle(
+                                    fontFamily: 'LeagueSpartan',
+                                    fontSize: screenWidth * 0.06,
+                                    color: blue1,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          SizedBox(height: screenHeight * 0.02),
+
+                          Text(
+                            'Stay connected, stay organized',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'LeagueSpartanMedium',
+                              fontSize: screenWidth * 0.05,
+                              color: Colors.black,
+                            ),
+                          ),
+
+                          SizedBox(height: screenHeight * 0.05),
+
+                          // Username
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Username',
+                                style: TextStyle(
+                                  fontFamily: 'LeagueSpartanMedium',
+                                  fontSize: screenWidth * 0.055,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              TextField(
+                                controller: _nameController,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter your name',
+                                  filled: true,
+                                  fillColor:
+                                      Colors.grey[200]?.withOpacity(0.7) ??
+                                          Colors.grey.withOpacity(0.7),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: screenHeight * 0.03),
+
+                          // Email
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Email',
+                                style: TextStyle(
+                                  fontFamily: 'LeagueSpartanMedium',
+                                  fontSize: screenWidth * 0.055,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              TextField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter your email',
+                                  filled: true,
+                                  fillColor:
+                                      Colors.grey[200]?.withOpacity(0.7) ??
+                                          Colors.grey.withOpacity(0.7),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: screenHeight * 0.03),
+
+                          // Password
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Password',
+                                style: TextStyle(
+                                  fontFamily: 'LeagueSpartanMedium',
+                                  fontSize: screenWidth * 0.055,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              TextField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter your password',
+                                  filled: true,
+                                  fillColor:
+                                      Colors.grey[200]?.withOpacity(0.7) ??
+                                          Colors.grey.withOpacity(0.7),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: screenHeight * 0.03),
+
+                          // Forgot password checkbox
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Checkbox(value: false, onChanged: (value) {}),
+                              Text(
+                                'Forgot password !',
+                                style: TextStyle(
+                                  fontFamily: 'LeagueSpartan',
+                                  fontSize: screenWidth * 0.055,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: screenHeight * 0.04),
+
+                          CustomButton(
+                            text: 'Login',
+                            onPressed: () {
+                              context.read<AuthCubit>().login(
+                                    name: _nameController.text.trim(),
+                                    email: _emailController.text.trim(),
+                                    password: _passwordController.text.trim(),
+                                  );
+                            },
+                          ),
+
+                          SizedBox(height: screenHeight * 0.03),
+
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => SignupScreen()),
+                              );
+                            },
+                            child: Text(
+                              "Don't have an account? Sign up",
+                              style: TextStyle(
+                                color: blue1,
+                                fontSize: screenWidth * 0.045,
+                                fontFamily: 'LeagueSpartanMedium',
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: screenHeight * 0.05),
+                        ],
                       );
                     },
                   ),
-                  SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SignupScreen()),
-                      );
-                    },
-                    child: Text(
-                      "Don't have an account? Sign up",
-                      style: TextStyle(
-                        color: blue1,
-                        fontSize: 18,
-                        fontFamily: 'LeagueSpartanMedium',
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -161,18 +295,4 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-// Helper function for text fields
-Widget buildTextField(String label, String hint,
-    {TextEditingController? controller, bool obscureText = false}) {
-  return TextField(
-    controller: controller,
-    obscureText: obscureText,
-    decoration: InputDecoration(
-      labelText: label,
-      hintText: hint,
-      border: OutlineInputBorder(),
-    ),
-  );
 }

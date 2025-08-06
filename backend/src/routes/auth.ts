@@ -6,8 +6,9 @@ import bcryptjs from "bcryptjs";
 import type { NewUser } from "../db/schema";
 import jwt from "jsonwebtoken";
 import { auth, AuthRequest } from "../middleware/auth";
+import dotenv from "dotenv";
 
-require('dotenv').config();
+dotenv.config();
 
 const authRouter = Router();
 

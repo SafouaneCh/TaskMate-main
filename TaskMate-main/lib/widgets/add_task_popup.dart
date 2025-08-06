@@ -4,6 +4,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:taskmate/cubit/add_new_task_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
+import 'package:taskmate/cubit/tasks_cubit.dart';
 import '../widgets/task_card.dart';
 
 class AddTaskModal extends StatefulWidget {
@@ -55,146 +56,6 @@ class _AddTaskModalState extends State<AddTaskModal> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: double.infinity,
-        height: MediaQuery.of(context).size.height * 0.8,
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: BlocConsumer<AddNewTaskCubit, AddNewTaskState>(
-          listener: (context, state) {
-            if (state is AddNewTakSucess) {
-              Navigator.of(context).pop();
-            } else if (state is AddNewTakError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.error)),
-              );
-            }
-          },
-          builder: (context, state) {
-            if (state is AddNewTakLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: SingleChildScrollView(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: Color(0xFF4A5053),
-                                fontFamily: 'Roboto',
-                                fontSize: 22,
-                              ),
-                            ),
-                          ),
-                          const Text(
-                            'Add task',
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 25,
-                              color: Colors.black,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _saveTask,
-                            child: const Text(
-                              'Done',
-                              style: TextStyle(
-                                fontFamily: 'Roboto',
-                                color: Color(0xFF009DFF),
-                                fontSize: 22,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      _buildTextField(
-                        'Task name',
-                        'Enter your Task name',
-                        controller: _nameController,
-                        prefixIcon: Icons.task,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildTextField(
-                        'Task description',
-                        'Enter your Task prompt',
-                        controller: _descriptionController,
-                        prefixIcon: Icons.notes,
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDatePickerField(
-                              'Date',
-                              '2024-09-01',
-                              controller: _dateController,
-                              prefixIcon: Icons.calendar_today,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _buildTimePickerField(
-                              'Time',
-                              '14:00',
-                              controller: _timeController,
-                              prefixIcon: Icons.access_time,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      _buildPriorityDropdown(),
-                      const SizedBox(height: 20),
-                      _buildContactField(),
-                      const SizedBox(height: 30),
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: _saveTask,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 15, horizontal: 20),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            backgroundColor: const Color(0xFF074666),
-                          ),
-                          child: const Text(
-                            'Save task',
-                            style: TextStyle(
-                                fontSize: 18, color: Colors.yellowAccent),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   void _saveTask() {
     if (_formKey.currentState!.validate()) {
       final authState = context.read<AuthCubit>().state;
@@ -211,7 +72,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
         contacts: _selectedContacts,
         token: token ?? '',
       );
-      Navigator.of(context).pop();
+      // Don't pop immediately, wait for success/error state
     }
   }
 
@@ -220,12 +81,14 @@ class _AddTaskModalState extends State<AddTaskModal> {
     String hint, {
     required TextEditingController controller,
     IconData? prefixIcon,
+    required double screenWidth,
+    required double screenHeight,
   }) {
     return Container(
-      padding: const EdgeInsets.all(3.0),
+      padding: EdgeInsets.all(screenWidth * 0.008),
       decoration: BoxDecoration(
         color: const Color(0xEAECECBF),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(screenWidth * 0.05),
         border: Border.all(
           color: const Color(0xFF073F5C),
           width: 3.0,
@@ -235,18 +98,20 @@ class _AddTaskModalState extends State<AddTaskModal> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+            padding: EdgeInsets.only(
+                left: screenWidth * 0.04, top: screenWidth * 0.02),
             child: Row(
               children: [
                 if (prefixIcon != null)
-                  Icon(prefixIcon, color: const Color(0xFF073F5C)),
-                const SizedBox(width: 8),
+                  Icon(prefixIcon,
+                      color: const Color(0xFF073F5C), size: screenWidth * 0.05),
+                SizedBox(width: screenWidth * 0.02),
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Roboto',
-                    fontSize: 20,
+                    fontSize: screenWidth * 0.05,
                     color: Color(0xFF073F5C),
                   ),
                 ),
@@ -257,14 +122,15 @@ class _AddTaskModalState extends State<AddTaskModal> {
             controller: controller,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 color: Color(0xFFB7B7B7),
                 fontFamily: 'Roboto',
-                fontSize: 18,
+                fontSize: screenWidth * 0.045,
               ),
               border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+              contentPadding: EdgeInsets.symmetric(
+                  vertical: screenHeight * 0.01,
+                  horizontal: screenWidth * 0.04),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -283,6 +149,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
     String hint, {
     required TextEditingController controller,
     IconData? prefixIcon,
+    required double screenWidth,
+    required double screenHeight,
   }) {
     return GestureDetector(
       onTap: () async {
@@ -305,6 +173,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
           hint,
           controller: controller,
           prefixIcon: prefixIcon,
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
         ),
       ),
     );
@@ -315,6 +185,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
     String hint, {
     required TextEditingController controller,
     IconData? prefixIcon,
+    required double screenWidth,
+    required double screenHeight,
   }) {
     return GestureDetector(
       onTap: () async {
@@ -337,17 +209,19 @@ class _AddTaskModalState extends State<AddTaskModal> {
           hint,
           controller: controller,
           prefixIcon: prefixIcon,
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
         ),
       ),
     );
   }
 
-  Widget _buildPriorityDropdown() {
+  Widget _buildPriorityDropdown(double screenWidth, double screenHeight) {
     return Container(
-      padding: const EdgeInsets.all(3.0),
+      padding: EdgeInsets.all(screenWidth * 0.008),
       decoration: BoxDecoration(
         color: const Color(0xEAECECBF),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(screenWidth * 0.05),
         border: Border.all(
           color: const Color(0xFF073F5C),
           width: 3.0,
@@ -357,17 +231,19 @@ class _AddTaskModalState extends State<AddTaskModal> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+            padding: EdgeInsets.only(
+                left: screenWidth * 0.04, top: screenWidth * 0.02),
             child: Row(
               children: [
-                const Icon(Icons.star, color: Color(0xFF073F5C)),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.star,
+                    color: Color(0xFF073F5C), size: screenWidth * 0.05),
+                SizedBox(width: screenWidth * 0.02),
+                Text(
                   'Priority',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Roboto',
-                    fontSize: 20,
+                    fontSize: screenWidth * 0.05,
                     color: Color(0xFF073F5C),
                   ),
                 ),
@@ -376,16 +252,20 @@ class _AddTaskModalState extends State<AddTaskModal> {
           ),
           DropdownButtonFormField<String>(
             value: _selectedPriority,
-            decoration: const InputDecoration(
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(
+                  vertical: screenHeight * 0.01,
+                  horizontal: screenWidth * 0.04),
               border: InputBorder.none,
             ),
             items: ['High priority', 'Medium priority', 'Low priority']
                 .map((priority) {
               return DropdownMenuItem<String>(
                 value: priority,
-                child: Text(priority),
+                child: Text(
+                  priority,
+                  style: TextStyle(fontSize: screenWidth * 0.045),
+                ),
               );
             }).toList(),
             onChanged: (value) {
@@ -399,12 +279,12 @@ class _AddTaskModalState extends State<AddTaskModal> {
     );
   }
 
-  Widget _buildContactField() {
+  Widget _buildContactField(double screenWidth, double screenHeight) {
     return Container(
-      padding: const EdgeInsets.all(3.0),
+      padding: EdgeInsets.all(screenWidth * 0.008),
       decoration: BoxDecoration(
         color: const Color(0xEAECECBF),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(screenWidth * 0.05),
         border: Border.all(
           color: const Color(0xFF073F5C),
           width: 3.0,
@@ -414,17 +294,19 @@ class _AddTaskModalState extends State<AddTaskModal> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+            padding: EdgeInsets.only(
+                left: screenWidth * 0.04, top: screenWidth * 0.02),
             child: Row(
               children: [
-                const Icon(Icons.contacts, color: Color(0xFF073F5C)),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.contacts,
+                    color: Color(0xFF073F5C), size: screenWidth * 0.05),
+                SizedBox(width: screenWidth * 0.02),
+                Text(
                   'Contacts',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Roboto',
-                    fontSize: 20,
+                    fontSize: screenWidth * 0.05,
                     color: Color(0xFF073F5C),
                   ),
                 ),
@@ -433,36 +315,42 @@ class _AddTaskModalState extends State<AddTaskModal> {
           ),
           if (_permissionDenied)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
               child: TextButton(
                 onPressed: () async {
                   await openAppSettings();
                   _fetchContacts();
                 },
-                child: const Text(
+                child: Text(
                   'Permission denied. Tap to open settings',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(
+                      color: Colors.red, fontSize: screenWidth * 0.04),
                 ),
               ),
             )
           else if (_contactsLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
             DropdownButtonFormField<Contact>(
               value: null,
-              decoration: const InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.01,
+                    horizontal: screenWidth * 0.04),
                 border: InputBorder.none,
                 hintText: 'Select contacts',
+                hintStyle: TextStyle(fontSize: screenWidth * 0.045),
               ),
               items: _allContacts.map((contact) {
                 return DropdownMenuItem<Contact>(
                   value: contact,
-                  child: Text(contact.displayName),
+                  child: Text(
+                    contact.displayName,
+                    style: TextStyle(fontSize: screenWidth * 0.045),
+                  ),
                 );
               }).toList(),
               onChanged: (selectedContact) {
@@ -475,12 +363,15 @@ class _AddTaskModalState extends State<AddTaskModal> {
               },
             ),
             if (_selectedContacts.isNotEmpty) ...[
-              const SizedBox(height: 10),
+              SizedBox(height: screenHeight * 0.01),
               Wrap(
-                spacing: 8.0,
+                spacing: screenWidth * 0.02,
                 children: _selectedContacts.map((contact) {
                   return Chip(
-                    label: Text(contact.displayName),
+                    label: Text(
+                      contact.displayName,
+                      style: TextStyle(fontSize: screenWidth * 0.04),
+                    ),
                     onDeleted: () {
                       setState(() {
                         _selectedContacts.remove(contact);
@@ -492,6 +383,230 @@ class _AddTaskModalState extends State<AddTaskModal> {
             ],
           ],
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+
+    return BlocListener<AddNewTaskCubit, AddNewTaskState>(
+      listener: (context, state) {
+        if (state is AddNewTakSucess) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text(
+                    'Task added successfully!',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          // Refresh tasks list
+          final authState = context.read<AuthCubit>().state;
+          if (authState is AuthLoggedIn) {
+            context
+                .read<TasksCubit>()
+                .refreshTasks(token: authState.user.token);
+          }
+          // Close the popup
+          Navigator.of(context).pop();
+        } else if (state is AddNewTakError) {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text(
+                    'Failed to add task: ${state.error}',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<AddNewTaskCubit, AddNewTaskState>(
+        builder: (context, state) {
+          return Material(
+            color: Colors.transparent,
+            child: SafeArea(
+              child: Center(
+                child: Container(
+                  width: double.infinity,
+                  height: screenHeight * 0.85,
+                  margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Color(0xFF4A5053),
+                                    fontFamily: 'Roboto',
+                                    fontSize: screenWidth * 0.055,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Add task',
+                                style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: screenWidth * 0.06,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: _saveTask,
+                                child: Text(
+                                  'Done',
+                                  style: TextStyle(
+                                    fontFamily: 'Roboto',
+                                    color: Color(0xFF009DFF),
+                                    fontSize: screenWidth * 0.055,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: screenHeight * 0.03),
+                          _buildTextField(
+                            'Task name',
+                            'Enter your Task name',
+                            controller: _nameController,
+                            prefixIcon: Icons.task,
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildTextField(
+                            'Task description',
+                            'Enter your Task prompt',
+                            controller: _descriptionController,
+                            prefixIcon: Icons.notes,
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildDatePickerField(
+                                  'Date',
+                                  '2024-09-01',
+                                  controller: _dateController,
+                                  prefixIcon: Icons.calendar_today,
+                                  screenWidth: screenWidth,
+                                  screenHeight: screenHeight,
+                                ),
+                              ),
+                              SizedBox(width: screenWidth * 0.025),
+                              Expanded(
+                                child: _buildTimePickerField(
+                                  'Time',
+                                  '14:00',
+                                  controller: _timeController,
+                                  prefixIcon: Icons.access_time,
+                                  screenWidth: screenWidth,
+                                  screenHeight: screenHeight,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildPriorityDropdown(screenWidth, screenHeight),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildContactField(screenWidth, screenHeight),
+                          SizedBox(height: screenHeight * 0.03),
+                          Center(
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: state is AddNewTakLoading
+                                    ? null
+                                    : _saveTask,
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: screenHeight * 0.015,
+                                      horizontal: screenWidth * 0.05),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        screenWidth * 0.05),
+                                  ),
+                                  backgroundColor: const Color(0xFF074666),
+                                ),
+                                child: state is AddNewTakLoading
+                                    ? Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: screenWidth * 0.04,
+                                            height: screenWidth * 0.04,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Colors.yellowAccent),
+                                            ),
+                                          ),
+                                          SizedBox(width: screenWidth * 0.02),
+                                          Text(
+                                            'Saving...',
+                                            style: TextStyle(
+                                                fontSize: screenWidth * 0.045,
+                                                color: Colors.yellowAccent),
+                                          ),
+                                        ],
+                                      )
+                                    : Text(
+                                        'Save task',
+                                        style: TextStyle(
+                                            fontSize: screenWidth * 0.045,
+                                            color: Colors.yellowAccent),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

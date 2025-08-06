@@ -9,19 +9,28 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: blue1, // Couleur de fond du bouton
-
+        backgroundColor: blue1,
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.05,
+          vertical: screenWidth * 0.02,
+        ),
+        minimumSize: Size(double.infinity, screenWidth * 0.12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(screenWidth * 0.02),
+        ),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontFamily: 'LeagueSpartanMedium', // Police personnalisée
-          fontSize: 28, // Taille de la police
-          fontWeight: FontWeight.bold, // Épaisseur de la police
-          color: yellow1, // Couleur du texte
+          fontFamily: 'LeagueSpartanMedium',
+          fontSize: screenWidth * 0.04,
+          fontWeight: FontWeight.bold,
+          color: yellow1,
         ),
       ),
     );

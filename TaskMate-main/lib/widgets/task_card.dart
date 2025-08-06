@@ -12,8 +12,10 @@ class TaskCard extends StatelessWidget {
   final String name; // Attribute for task name
   final String date; // Attribute for task date
   final List<String> contacts; // Attribute for task contacts
+  final VoidCallback? onTap; // Add onTap callback
 
-  const TaskCard({super.key, 
+  const TaskCard({
+    super.key,
     required this.time,
     required this.description,
     required this.priority,
@@ -21,20 +23,24 @@ class TaskCard extends StatelessWidget {
     required this.name,
     required this.date,
     required this.contacts,
+    this.onTap, // Add onTap parameter
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(11, 0, 13, 29),
-      child: _CardContent(
-        time: time,
-        description: description,
-        priority: priority,
-        isCompleted: isCompleted,
-        name: name,
-        date: date,
-        contacts: contacts,
+    return GestureDetector(
+      onTap: onTap, // Add tap functionality
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(11, 0, 13, 29),
+        child: _CardContent(
+          time: time,
+          description: description,
+          priority: priority,
+          isCompleted: isCompleted,
+          name: name,
+          date: date,
+          contacts: contacts,
+        ),
       ),
     );
   }

@@ -4,7 +4,8 @@ class CustomBottomBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
 
-  const CustomBottomBar({super.key, 
+  const CustomBottomBar({
+    super.key,
     required this.selectedIndex,
     required this.onItemTapped,
   });
@@ -31,46 +32,35 @@ class CustomBottomBar extends StatelessWidget {
         child: BottomAppBar(
           shape: CircularNotchedRectangle(),
           notchMargin: 0.0,
-            child :SafeArea(
-              child: BottomNavigationBar(
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: Flexible(
-                      child: Icon(Icons.home ,size: 20), // Icone flexible
-                    ),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Flexible(
-                      child: Icon(Icons.calendar_today ,size: 20), // Icone flexible
-                    ),
-                    label: 'Calendar',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Flexible(
-                      child: Icon(Icons.person ,size: 20), // Icone flexible
-                    ),
-                    label: 'Contacts',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Flexible(
-                      child: Icon(Icons.settings ,size: 20), // Icone flexible
-                    ),
-                    label: 'Settings',
-                  ),
-                ],
-                currentIndex: selectedIndex,
-                selectedItemColor: Colors.blue,
-                unselectedItemColor: Colors.black,
-                onTap: onItemTapped,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                type: BottomNavigationBarType.fixed,
-              )
-
-
+          child: SafeArea(
+            child: BottomNavigationBar(
+              items: <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home, size: 20),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today, size: 20),
+                  label: 'Calendar',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person, size: 20),
+                  label: 'Contacts',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.settings, size: 20),
+                  label: 'Settings',
+                ),
+              ],
+              currentIndex: selectedIndex,
+              selectedItemColor: Colors.blue,
+              unselectedItemColor: Colors.black,
+              onTap: onItemTapped,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              type: BottomNavigationBarType.fixed,
             ),
-
+          ),
         ),
       ),
     );

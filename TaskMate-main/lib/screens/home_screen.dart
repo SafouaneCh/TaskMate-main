@@ -6,10 +6,14 @@ import 'contact_management_screen.dart';
 import 'calendar_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/custom_bottom_bar.dart';
-import '../widgets/task_data.dart'; // Ensure this import matches the location of your task_data.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/add_new_task_cubit.dart';
+import '../cubit/tasks_cubit.dart';
+import '../cubit/auth_cubit.dart';
 import '../widgets/add_task_popup.dart';
+import '../widgets/task_card.dart';
+import '../widgets/task_detail_popup.dart';
+import '../models/task_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
+    // Fetch tasks when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthLoggedIn) {
+        context.read<TasksCubit>().fetchTasks(
+              token: authState.user.token,
+              date: _selectedDay,
+            );
+      }
+    });
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -35,6 +49,15 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedDay = selectedDay;
       _focusedDay = focusedDay;
     });
+
+    // Fetch tasks for the selected date
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthLoggedIn) {
+      context.read<TasksCubit>().fetchTasks(
+            token: authState.user.token,
+            date: selectedDay,
+          );
+    }
   }
 
   void _onItemTapped(int index) {
@@ -70,12 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (BuildContext context) {
         return BlocProvider<AddNewTaskCubit>(
-          create: (context) => AddNewTaskCubit(), // Provide your cubit instance
+          create: (context) => AddNewTaskCubit(),
           child: AddTaskModal(
             onTaskAdded: (newTask) {
-              setState(() {
-                TaskManager.addTask(newTask); // Add task to TaskManager
-              });
+              // Refresh tasks after adding a new one
+              final authState = context.read<AuthCubit>().state;
+              if (authState is AuthLoggedIn) {
+                context.read<TasksCubit>().refreshTasks(
+                      token: authState.user.token,
+                      date: _selectedDay,
+                    );
+              }
             },
           ),
         );
@@ -83,308 +111,544 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildTaskCard(TaskModel task) {
+    return TaskCard(
+      time: DateFormat('HH:mm').format(task.dueAt),
+      description: task.description,
+      priority: task.priority,
+      isCompleted:
+          false, // TaskModel doesn't have isCompleted, default to false
+      name: task.name,
+      date: DateFormat('yyyy-MM-dd').format(task.dueAt),
+      contacts: task.contact.isNotEmpty ? task.contact.split(',') : [],
+      onTap: () => _showTaskDetailModal(context, task),
+    );
+  }
+
+  void _showTaskDetailModal(BuildContext context, TaskModel task) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return TaskDetailPopup(
+          task: task,
+          onEdit: () {
+            Navigator.of(context).pop();
+            _showEditTaskModal(context, task);
+          },
+          onDelete: () {
+            Navigator.of(context).pop();
+            _deleteTask(context, task);
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditTaskModal(BuildContext context, TaskModel task) {
+    // For now, show a simple edit dialog
+    // In a full implementation, you would create a proper edit form
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Task'),
+          content: Text(
+              'Edit functionality will be implemented with a proper form.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // TODO: Implement proper edit form
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Edit form coming soon!')),
+                );
+              },
+              child: Text('Edit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteTask(BuildContext context, TaskModel task) {
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthLoggedIn) {
+      context.read<TasksCubit>().deleteTask(
+            taskId: task.id,
+            token: authState.user.token,
+            date: _selectedDay,
+          );
+      // Refresh tasks for the current selected date after deletion
+      context.read<TasksCubit>().refreshTasks(
+            token: authState.user.token,
+            date: _selectedDay,
+          );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task deleted successfully!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Authentication error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+
     final now = DateTime.now();
     final dateFormat = DateFormat('MMMM d, yyyy');
     final formattedDate = dateFormat.format(now);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/background.jpg'),
-            fit: BoxFit.cover,
+      body: SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/background.jpg'),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(height: 15),
-              AppBar(
-                toolbarHeight: 100,
-                backgroundColor: Colors.transparent,
-                automaticallyImplyLeading: false,
-                elevation: 0,
-                flexibleSpace: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 20.0),
-                  child: Row(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: screenHeight * 0.02),
+                AppBar(
+                  toolbarHeight: screenHeight * 0.12,
+                  backgroundColor: Colors.transparent,
+                  automaticallyImplyLeading: false,
+                  elevation: 0,
+                  flexibleSpace: Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.05,
+                        vertical: screenHeight * 0.02),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: screenWidth * 0.075,
+                          backgroundImage: AssetImage('assets/utilisateur.png'),
+                        ),
+                        SizedBox(width: screenWidth * 0.025),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Hi, Akram',
+                              style: TextStyle(
+                                height: 1.2,
+                                fontSize: screenWidth * 0.05,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Good Morning!',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: screenWidth * 0.04,
+                                height: 1.2,
+                                color: Color(0xFF333333),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Spacer(),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                  child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundImage: AssetImage('assets/utilisateur.png'),
+                      Text(
+                        'My tasks',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          height: 1.1,
+                          fontSize: screenWidth * 0.075,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Hi, Akram',
-                            style: TextStyle(
-                              height: 1.2,
-                              fontSize: 20,
+                      Text(
+                        _selectedDay != null
+                            ? DateFormat('MMMM d, yyyy').format(_selectedDay!)
+                            : '$formattedDate Today',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: screenWidth * 0.04,
+                          height: 1.1,
+                          color: Color(0xFF333333),
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      SingleChildScrollView(
+                        physics: NeverScrollableScrollPhysics(),
+                        child: TableCalendar(
+                          firstDay: DateTime.utc(2020, 10, 16),
+                          lastDay: DateTime.utc(2030, 3, 14),
+                          focusedDay: _focusedDay,
+                          selectedDayPredicate: (day) {
+                            return isSameDay(_selectedDay, day);
+                          },
+                          onDaySelected: _onDaySelected,
+                          calendarFormat: _calendarFormat,
+                          onFormatChanged: (format) {
+                            setState(() {
+                              _calendarFormat = format;
+                            });
+                          },
+                          onPageChanged: (focusedDay) {
+                            _focusedDay = focusedDay;
+                          },
+                          availableCalendarFormats: const {
+                            CalendarFormat.week: 'Week',
+                          },
+                          headerVisible: false,
+                          daysOfWeekHeight: screenHeight * 0.05,
+                          daysOfWeekStyle: DaysOfWeekStyle(
+                            weekdayStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: screenWidth * 0.04,
+                            ),
+                            weekendStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: screenWidth * 0.04,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                            ),
+                          ),
+                          calendarStyle: CalendarStyle(
+                            defaultTextStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: screenWidth * 0.04,
+                            ),
+                            defaultDecoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.rectangle,
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.025),
+                            ),
+                            todayTextStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: screenWidth * 0.04,
+                            ),
+                            todayDecoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF074361), Color(0xFF0E81BB)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              shape: BoxShape.rectangle,
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.025),
+                            ),
+                            selectedTextStyle: TextStyle(
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
-                          Text(
-                            'Good Morning!',
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: 16,
-                              height: 1.2,
-                              color: Color(0xFF333333),
+                            selectedDecoration: BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.rectangle,
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.025),
                             ),
+                            weekendDecoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.rectangle,
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.025),
+                            ),
+                            outsideDecoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.rectangle,
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.025),
+                            ),
+                            markersMaxCount: 1,
+                            isTodayHighlighted: true,
+                            cellMargin: EdgeInsets.all(0),
                           ),
-                        ],
+                          calendarBuilders: CalendarBuilders(
+                            defaultBuilder: (context, day, focusedDay) {
+                              return Container(
+                                margin: EdgeInsets.all(screenWidth * 0.006),
+                                width: screenWidth * 0.12,
+                                height: screenHeight * 0.08,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(
+                                      screenWidth * 0.025),
+                                ),
+                                child: Text(
+                                  day.day.toString(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: screenWidth * 0.045,
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ),
+                              );
+                            },
+                            todayBuilder: (context, day, focusedDay) {
+                              return Container(
+                                margin: EdgeInsets.all(screenWidth * 0.006),
+                                width: screenWidth * 0.12,
+                                height: screenHeight * 0.08,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(
+                                      color: Color(0xFF074361),
+                                      width: screenWidth * 0.012),
+                                  borderRadius:
+                                      BorderRadius.circular(screenWidth * 0.04),
+                                ),
+                                child: Text(
+                                  day.day.toString(),
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: screenWidth * 0.045,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              );
+                            },
+                            selectedBuilder: (context, day, focusedDay) {
+                              return Container(
+                                margin: EdgeInsets.all(screenWidth * 0.006),
+                                width: screenWidth * 0.12,
+                                height: screenHeight * 0.08,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFF074361),
+                                      Color(0xFF0E81BB)
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                      screenWidth * 0.025),
+                                ),
+                                child: Text(
+                                  day.day.toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: screenWidth * 0.045,
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ),
+                              );
+                            },
+                            outsideBuilder: (context, day, focusedDay) {
+                              return Container(
+                                alignment: Alignment.center,
+                                width: screenWidth * 0.12,
+                                height: screenHeight * 0.08,
+                                margin: EdgeInsets.all(screenWidth * 0.006),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(
+                                      screenWidth * 0.025),
+                                  border: Border.all(
+                                      color: Colors.grey.shade300, width: 1),
+                                ),
+                                child: Text(
+                                  day.day.toString(),
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: screenWidth * 0.045,
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
-                      Spacer(),
+
+                      SizedBox(height: screenHeight * 0.03),
+                      Container(
+                        margin:
+                            EdgeInsets.fromLTRB(0, 0, 0, screenHeight * 0.02),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Color(0xFFC3C0C0),
+                            borderRadius:
+                                BorderRadius.circular(screenWidth * 0.012),
+                          ),
+                          child: SizedBox(
+                            width: screenWidth * 0.13,
+                            height: screenHeight * 0.006,
+                          ),
+                        ),
+                      ),
+                      // Display tasks using BlocBuilder
+                      BlocBuilder<TasksCubit, TasksState>(
+                        builder: (context, state) {
+                          if (state is TasksLoading) {
+                            return Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(screenHeight * 0.02),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          } else if (state is TasksLoaded) {
+                            if (state.tasks.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(screenHeight * 0.02),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.task_alt,
+                                        size: screenWidth * 0.15,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: screenHeight * 0.02),
+                                      Text(
+                                        'No tasks yet',
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.05,
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: screenHeight * 0.01),
+                                      Text(
+                                        'Add your first task using the + button',
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.04,
+                                          color: Colors.grey[600],
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return Column(
+                                children: state.tasks
+                                    .map((task) => _buildTaskCard(task))
+                                    .toList(),
+                              );
+                            }
+                          } else if (state is TasksError) {
+                            return Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(screenHeight * 0.02),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      size: screenWidth * 0.15,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(height: screenHeight * 0.02),
+                                    Text(
+                                      'Failed to load tasks',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.05,
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: screenHeight * 0.01),
+                                    Text(
+                                      state.error,
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
+                                        color: Colors.grey[600],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(height: screenHeight * 0.02),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        final authState =
+                                            context.read<AuthCubit>().state;
+                                        if (authState is AuthLoggedIn) {
+                                          context
+                                              .read<TasksCubit>()
+                                              .refreshTasks(
+                                                token: authState.user.token,
+                                                date: _selectedDay,
+                                              );
+                                        }
+                                      },
+                                      child: Text('Retry'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          } else {
+                            // TasksInitial state - show empty state
+                            return Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(screenHeight * 0.02),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.task_alt,
+                                      size: screenWidth * 0.15,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(height: screenHeight * 0.02),
+                                    Text(
+                                      'No tasks yet',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.05,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: screenHeight * 0.01),
+                                    Text(
+                                      'Add your first task using the + button',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
+                                        color: Colors.grey[600],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'My tasks',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        height: 1.1,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '$formattedDate Today',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 16,
-                        height: 1.1,
-                        color: Color(0xFF333333),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    SingleChildScrollView(
-                      physics:
-                          NeverScrollableScrollPhysics(), // Disable vertical scrolling
-                      child: TableCalendar(
-                        firstDay: DateTime.utc(2020, 10, 16),
-                        lastDay: DateTime.utc(2030, 3, 14),
-                        focusedDay: _focusedDay,
-                        selectedDayPredicate: (day) {
-                          return isSameDay(_selectedDay, day);
-                        },
-                        onDaySelected: _onDaySelected,
-                        calendarFormat: _calendarFormat,
-                        onFormatChanged: (format) {
-                          setState(() {
-                            _calendarFormat = format;
-                          });
-                        },
-                        onPageChanged: (focusedDay) {
-                          _focusedDay = focusedDay;
-                        },
-                        availableCalendarFormats: const {
-                          CalendarFormat.week: 'Week', // Only allow month view
-                        },
-                        headerVisible: false,
-                        daysOfWeekHeight: 40,
-                        daysOfWeekStyle: DaysOfWeekStyle(
-                          weekdayStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          weekendStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                          ),
-                        ),
-                        calendarStyle: CalendarStyle(
-                          defaultTextStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          defaultDecoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.rectangle,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          todayTextStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          todayDecoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF074361), Color(0xFF0E81BB)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            shape: BoxShape.rectangle,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          selectedTextStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          selectedDecoration: BoxDecoration(
-                            color: Colors.orange,
-                            shape: BoxShape.rectangle,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          weekendDecoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.rectangle,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          outsideDecoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.rectangle,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          markersMaxCount: 1,
-                          isTodayHighlighted: true,
-                          cellMargin: EdgeInsets.all(0),
-                        ),
-                        calendarBuilders: CalendarBuilders(
-                          defaultBuilder: (context, day, focusedDay) {
-                            return Container(
-                              margin: EdgeInsets.all(2.5),
-                              width: 49.0,
-                              height:
-                                  67.0, // Margin to create space between tiles
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                day.day.toString(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  fontFamily: 'Roboto',
-                                ),
-                              ),
-                            );
-                          },
-                          todayBuilder: (context, day, focusedDay) {
-                            return Container(
-                              margin: EdgeInsets.all(2.5),
-                              width: 49.0,
-                              height:
-                                  67.0, // Margin to create space between tiles
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                    color: Color(0xFF074361), width: 5),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                day.day.toString(),
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            );
-                          },
-                          selectedBuilder: (context, day, focusedDay) {
-                            return Container(
-                              margin: EdgeInsets.all(2.5),
-                              width: 49.0,
-                              height:
-                                  67.0, // Margin to create space between tiles
-                              alignment: Alignment.center,
-
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF074361),
-                                    Color(0xFF0E81BB)
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                day.day.toString(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  fontFamily: 'Roboto',
-                                ),
-                              ),
-                            );
-                          },
-                          outsideBuilder: (context, day, focusedDay) {
-                            return Container(
-                              alignment: Alignment.center,
-                              width: 49.0,
-                              height: 67.0,
-                              margin: EdgeInsets.all(2.5),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    color: Colors.grey.shade300, width: 1),
-                              ),
-                              child: Text(
-                                day.day.toString(),
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 18,
-                                  fontFamily: 'Roboto',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 30),
-                    Container(
-                      margin: EdgeInsets.fromLTRB(0, 0, 0, 17),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFFC3C0C0),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: SizedBox(
-                          width: 53,
-                          height: 5,
-                        ),
-                      ),
-                    ),
-                    // Display tasks
-
-                    Column(
-                      children:
-                          TaskManager.getTasks(), // Call getTasks directly
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
       floatingActionButton: GestureDetector(
-        onTap: () => showAddTaskModal(context),
+        onTap: () => _showAddTaskModal(context),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(27.5),
+            borderRadius: BorderRadius.circular(screenWidth * 0.07),
             gradient: LinearGradient(
               begin: Alignment(0, -1),
               end: Alignment(0, 1),
@@ -397,15 +661,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           child: Container(
-            width: 55,
-            height: 55,
-            padding: EdgeInsets.all(18.5),
+            width: screenWidth * 0.14,
+            height: screenWidth * 0.14,
+            padding: EdgeInsets.all(screenWidth * 0.045),
             child: SizedBox(
-              width: 31,
-              height: 31,
+              width: screenWidth * 0.075,
+              height: screenWidth * 0.075,
               child: SizedBox(
-                width: 18.1,
-                height: 18.1,
+                width: screenWidth * 0.045,
+                height: screenWidth * 0.045,
                 child: SvgPicture.asset(
                   'assets/vectors/vector_7_x2.svg',
                 ),

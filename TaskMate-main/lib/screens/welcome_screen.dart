@@ -9,66 +9,108 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+    
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/Copy of Welcome - 1.jpg'),
-            fit: BoxFit.cover,
+      body: SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/Copy of Welcome - 1.jpg'),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Logo(),
-            SizedBox(height: 60),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: screenHeight - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    TextSpan(
-                      text: 'Enjoy your life with ',
-                      style: TextStyle(
-                        fontFamily: 'LeagueSpartan',
-                        fontSize: 75,
-                        height: 0.9,
-                        fontWeight: FontWeight.bold,
-                        color: blue1, // Couleur bleue pour "Welcome to"
+                    // Top spacer
+                    SizedBox(height: screenHeight * 0.05),
+                    
+                    // Logo with responsive sizing
+                    Container(
+                      width: screenWidth * 0.6,
+                      height: screenWidth * 0.6,
+                      constraints: BoxConstraints(
+                        maxWidth: 300,
+                        maxHeight: 300,
+                        minWidth: 200,
+                        minHeight: 200,
+                      ),
+                      child: Logo(),
+                    ),
+                    
+                    // Text section with responsive sizing
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.05,
+                        vertical: screenHeight * 0.02,
+                      ),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Enjoy your life with ',
+                              style: TextStyle(
+                                fontFamily: 'LeagueSpartan',
+                                fontSize: screenWidth * 0.06,
+                                height: 0.9,
+                                fontWeight: FontWeight.bold,
+                                color: blue1,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'TaskMate',
+                              style: TextStyle(
+                                fontFamily: 'LeagueSpartan',
+                                fontSize: screenWidth * 0.065,
+                                height: 0.9,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    TextSpan(
-                      text: 'TaskMate',
-                      style: TextStyle(
-                        fontFamily: 'LeagueSpartan',
-                        fontSize: 80,
-                        height: 0.9,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white, // Couleur jaune pour "TaskMate"
+                    
+                    // Button section
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.1,
+                        vertical: screenHeight * 0.02,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          text: '   Welcome   ',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => AnotherScreen()),
+                            );
+                          },
+                        ),
                       ),
                     ),
+                    
+                    // Bottom spacer
+                    SizedBox(height: screenHeight * 0.05),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 40),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 60.0), // Ajoutez du padding ici
-            ),
-            SizedBox(height: 60),
-            CustomButton(
-              text: '   Welcome   ',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AnotherScreen()),
-                );
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );

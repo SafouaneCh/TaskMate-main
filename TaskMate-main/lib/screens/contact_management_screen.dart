@@ -5,7 +5,7 @@ import '../widgets/ContactProvider.dart';
 import '../widgets/task_card.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:taskmate/widgets/custom_bottom_bar.dart' as widget;
-import 'package:taskmate/screens/home_screen.dart';
+import 'package:taskmate/screens/home_screen.dart' as home;
 import 'package:taskmate/screens/calendar_screen.dart';
 import 'package:taskmate/screens/settings_screen.dart';
 import 'package:taskmate/widgets/add_task_popup.dart';
@@ -78,16 +78,20 @@ class _ContactScreenState extends State<ContactScreen> {
 
     switch (index) {
       case 0:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => home.HomeScreen()));
         break;
       case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => CalendarScreen()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => CalendarScreen()));
         break;
       case 2:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ContactScreen()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => ContactScreen()));
         break;
       case 3:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsScreen()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => SettingsScreen()));
         break;
     }
   }
@@ -251,7 +255,8 @@ class _ContactScreenState extends State<ContactScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
                   initial,
                   style: const TextStyle(
@@ -296,7 +301,7 @@ class _ContactScreenState extends State<ContactScreen> {
           : '?';
     }
     return '${contact.name.first.isNotEmpty ? contact.name.first[0] : ''}'
-        '${contact.name.last.isNotEmpty ? contact.name.last[0] : ''}'
+            '${contact.name.last.isNotEmpty ? contact.name.last[0] : ''}'
         .toUpperCase();
   }
 
@@ -309,7 +314,11 @@ class _ContactScreenState extends State<ContactScreen> {
           gradient: const LinearGradient(
             begin: Alignment(0, -1),
             end: Alignment(0, 1),
-            colors: <Color>[Color(0xFF074666), Color(0xFF0E81BD), Color(0xFFFFFFFF)],
+            colors: <Color>[
+              Color(0xFF074666),
+              Color(0xFF0E81BD),
+              Color(0xFFFFFFFF)
+            ],
             stops: <double>[0, 1, 1],
           ),
         ),
