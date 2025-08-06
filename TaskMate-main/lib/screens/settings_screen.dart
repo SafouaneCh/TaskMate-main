@@ -8,6 +8,13 @@ import 'calendar_screen.dart';
 import 'contact_management_screen.dart';
 import '../widgets/add_task_popup.dart';
 import '../widgets/task_card.dart';
+import '../cubit/auth_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'login_screen.dart';
+import 'notifications_screen.dart';
+import 'privacy_security_screen.dart';
+import 'help_support_screen.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -122,52 +129,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     children: [
                       // Profile Section
-                      Container(
-                        padding: EdgeInsets.all(screenWidth * 0.05),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius:
-                              BorderRadius.circular(screenWidth * 0.025),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: screenWidth * 0.08,
-                              backgroundImage:
-                                  AssetImage('assets/utilisateur.png'),
-                            ),
-                            SizedBox(width: screenWidth * 0.04),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Akram',
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.055,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  Text(
-                                    'akram@example.com',
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.04,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
+                      GestureDetector(
+                        onTap: () => _navigateToEditProfile(context),
+                        child: Container(
+                          padding: EdgeInsets.all(screenWidth * 0.05),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius:
+                                BorderRadius.circular(screenWidth * 0.025),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: screenWidth * 0.08,
+                                backgroundImage:
+                                    AssetImage('assets/utilisateur.png'),
                               ),
-                            ),
-                            IconButton(
-                              onPressed: () => _navigateToEditProfile(context),
-                              icon: Icon(
-                                Icons.edit,
-                                size: screenWidth * 0.06,
-                                color: Colors.blue,
+                              SizedBox(width: screenWidth * 0.04),
+                              Expanded(
+                                child: BlocBuilder<AuthCubit, AuthState>(
+                                  builder: (context, authState) {
+                                    String userName = 'User';
+                                    String userEmail = 'user@example.com';
+
+                                    if (authState is AuthLoggedIn) {
+                                      userName = authState.user.name;
+                                      userEmail = authState.user.email;
+                                    }
+
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          userName,
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.055,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        Text(
+                                          userEmail,
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.04,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
-                          ],
+                              IconButton(
+                                onPressed: () =>
+                                    _navigateToEditProfile(context),
+                                icon: Icon(
+                                  Icons.edit,
+                                  size: screenWidth * 0.06,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.03),
@@ -184,7 +208,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.notifications,
                               title: 'Notifications',
                               subtitle: 'Manage your notifications',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          NotificationsScreen()),
+                                );
+                              },
                               screenWidth: screenWidth,
                               screenHeight: screenHeight,
                             ),
@@ -193,7 +224,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.security,
                               title: 'Privacy & Security',
                               subtitle: 'Manage your privacy settings',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          PrivacySecurityScreen()),
+                                );
+                              },
                               screenWidth: screenWidth,
                               screenHeight: screenHeight,
                             ),
@@ -202,7 +240,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.help,
                               title: 'Help & Support',
                               subtitle: 'Get help and contact support',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          HelpSupportScreen()),
+                                );
+                              },
                               screenWidth: screenWidth,
                               screenHeight: screenHeight,
                             ),
@@ -211,7 +256,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.info,
                               title: 'About',
                               subtitle: 'App version and information',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AboutScreen()),
+                                );
+                              },
                               screenWidth: screenWidth,
                               screenHeight: screenHeight,
                             ),
@@ -225,6 +276,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             // Handle logout
+                            context.read<AuthCubit>().logout();
+                            // Navigate to login screen using MaterialPageRoute
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (context) => LoginScreen()),
+                              (route) => false, // Remove all previous routes
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,

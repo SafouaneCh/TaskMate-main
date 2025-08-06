@@ -114,4 +114,37 @@ class AuthRemoteRepository {
       return null;
     }
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final token = await spService.getToken();
+      if (token == null) {
+        throw 'No token found! Please login first.';
+      }
+
+      final res = await http.post(
+        Uri.parse(
+          '${Constants.backendUri}/auth/change-password',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: jsonEncode({
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        }),
+      );
+
+      if (res.statusCode != 200) {
+        final errorData = jsonDecode(res.body);
+        throw errorData['error'] ?? 'Failed to change password';
+      }
+    } catch (e) {
+      throw e.toString();
+    }
+  }
 }

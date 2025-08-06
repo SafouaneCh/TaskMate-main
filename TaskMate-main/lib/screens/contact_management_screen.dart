@@ -9,6 +9,9 @@ import 'package:taskmate/screens/home_screen.dart' as home;
 import 'package:taskmate/screens/calendar_screen.dart';
 import 'package:taskmate/screens/settings_screen.dart';
 import 'package:taskmate/widgets/add_task_popup.dart';
+import '../widgets/ContactService.dart';
+import '../cubit/auth_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void showAddTaskModal(BuildContext context) {
   showModalBottomSheet(
@@ -114,29 +117,38 @@ class _ContactScreenState extends State<ContactScreen> {
               _buildSearchBar(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/utilisateur.png'),
-                  ),
-                  title: Text(
-                    'Akram Zouitni',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 18,
-                      height: 1,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Me',
-                    style: TextStyle(
-                      fontSize: 18,
-                      height: 1,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF727F86),
-                    ),
-                  ),
+                child: BlocBuilder<AuthCubit, AuthState>(
+                  builder: (context, authState) {
+                    String userName = 'User';
+                    if (authState is AuthLoggedIn) {
+                      userName = authState.user.name;
+                    }
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 30,
+                        backgroundImage: AssetImage('assets/utilisateur.png'),
+                      ),
+                      title: Text(
+                        userName,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 18,
+                          height: 1,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Me',
+                        style: TextStyle(
+                          fontSize: 18,
+                          height: 1,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF727F86),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               const Divider(thickness: 1),

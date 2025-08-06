@@ -23,16 +23,63 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
         // get req body
         const{name, email, password, phone} = req.body;
 
-        // check if user already exists
-        const existingUser = await db
+        // Validate password strength
+        if (password.length < 8) {
+            res.status(400).json({ error: "Password must be at least 8 characters long" });
+            return;
+        }
+
+        if (!/[A-Z]/.test(password)) {
+            res.status(400).json({ error: "Password must contain at least one uppercase letter" });
+            return;
+        }
+
+        if (!/[a-z]/.test(password)) {
+            res.status(400).json({ error: "Password must contain at least one lowercase letter" });
+            return;
+        }
+
+        if (!/\d/.test(password)) {
+            res.status(400).json({ error: "Password must contain at least one number" });
+            return;
+        }
+
+        // Validate phone number format (basic validation)
+        if (!phone || phone.length < 8) {
+            res.status(400).json({ error: "Phone number must be at least 8 characters long" });
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            res.status(400).json({ error: "Please provide a valid email address" });
+            return;
+        }
+
+        // check if user already exists with same email
+        const existingUserByEmail = await db
         .select()
         .from(users)
         .where(eq(users.email, email));
 
-        if (existingUser.length){
+        if (existingUserByEmail.length){
             res
             .status(400)
             .json({ error: "User with the same email already exists!"});
+            return;
+        }
+
+        // check if user already exists with same phone
+        const existingUserByPhone = await db
+        .select()
+        .from(users)
+        .where(eq(users.phone, phone));
+
+        if (existingUserByPhone.length){
+            res
+            .status(400)
+            .json({ error: "User with the same phone number already exists!"});
             return;
         }
 
@@ -52,7 +99,23 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
 
 
     }catch (e) {
-        res.status(500).json({ error: e });
+        console.error('Signup error:', e);
+        
+        // Check for specific database constraint violations
+        if (e && typeof e === 'object' && 'code' in e) {
+            const error = e as any;
+            if (error.code === '23505') { // PostgreSQL unique constraint violation
+                if (error.detail && error.detail.includes('email')) {
+                    res.status(400).json({ error: "User with the same email already exists!" });
+                    return;
+                } else if (error.detail && error.detail.includes('phone')) {
+                    res.status(400).json({ error: "User with the same phone number already exists!" });
+                    return;
+                }
+            }
+        }
+        
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -93,12 +156,23 @@ authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response)
        if (!jwtSecret) {
          throw new Error("JWT_SECRET is not defined in environment variables");
        }
-       const token = jwt.sign({ id: existingUser.id }, jwtSecret);
+       const token = jwt.sign(
+         { 
+           id: existingUser.id,
+           iat: Math.floor(Date.now() / 1000),
+           exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
+           iss: 'taskmate-api',
+           aud: 'taskmate-client'
+         }, 
+         jwtSecret,
+         { algorithm: 'HS256' }
+       );
 
         res.json({ user: existingUser, token });
 
         }catch (e) {
-        res.status(500).json({ error: e });
+        console.error('Login error:', e);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -118,9 +192,16 @@ authRouter.post("/tokenIsValid", async(req, res) => {
         }
         // verify if the token is valid
         // Note : jwt.verify returns a jwt.JwtPayload object
-        const verified = jwt.verify(token, jwtSecret);
+        const verified = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as {id: string, exp: number, iat: number, iss: string, aud: string};
 
         if(!verified) {
+            res.json(false);
+            return;
+        }
+
+        // Check if token is expired
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (verified.exp && verified.exp < currentTime) {
             res.json(false);
             return;
         }

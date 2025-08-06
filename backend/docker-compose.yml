@@ -7,6 +7,7 @@ services:
     environment:
     - PORT=8000
     - DATABASE_URL=postgresql://postgres:test123@db:5432/mydb
+    - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
     depends_on:
       - db
     volumes:

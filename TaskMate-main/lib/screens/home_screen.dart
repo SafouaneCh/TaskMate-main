@@ -198,6 +198,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good Morning!';
+    } else if (hour < 17) {
+      return 'Good Afternoon!';
+    } else {
+      return 'Good Evening!';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -232,38 +243,58 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: EdgeInsets.symmetric(
                         horizontal: screenWidth * 0.05,
                         vertical: screenHeight * 0.02),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: screenWidth * 0.075,
-                          backgroundImage: AssetImage('assets/utilisateur.png'),
-                        ),
-                        SizedBox(width: screenWidth * 0.025),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                    child: BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, authState) {
+                        String userName = 'User';
+                        if (authState is AuthLoggedIn) {
+                          userName = authState.user.name;
+                        }
+
+                        return Row(
                           children: [
-                            Text(
-                              'Hi, Akram',
-                              style: TextStyle(
-                                height: 1.2,
-                                fontSize: screenWidth * 0.05,
-                                fontWeight: FontWeight.bold,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SettingsScreen(),
+                                  ),
+                                );
+                              },
+                              child: CircleAvatar(
+                                radius: screenWidth * 0.075,
+                                backgroundImage:
+                                    AssetImage('assets/utilisateur.png'),
                               ),
                             ),
-                            Text(
-                              'Good Morning!',
-                              style: TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: screenWidth * 0.04,
-                                height: 1.2,
-                                color: Color(0xFF333333),
-                              ),
+                            SizedBox(width: screenWidth * 0.025),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Hi, $userName',
+                                  style: TextStyle(
+                                    height: 1.2,
+                                    fontSize: screenWidth * 0.05,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  _getGreeting(),
+                                  style: TextStyle(
+                                    fontFamily: 'Roboto',
+                                    fontSize: screenWidth * 0.04,
+                                    height: 1.2,
+                                    color: Color(0xFF333333),
+                                  ),
+                                ),
+                              ],
                             ),
+                            Spacer(),
                           ],
-                        ),
-                        Spacer(),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ),

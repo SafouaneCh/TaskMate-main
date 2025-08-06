@@ -27,10 +27,17 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
         }
         // verify if the token is valid
         // Note : jwt.verify returns a jwt.JwtPayload (id: string) object
-        const verified = jwt.verify(token, jwtSecret);
+        const verified = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as {id: UUID, exp: number, iat: number, iss: string, aud: string};
 
         if(!verified) {
             res.status(401).json({error: "Token verification failed"});
+            return;
+        }
+
+        // Check if token is expired
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (verified.exp && verified.exp < currentTime) {
+            res.status(401).json({error: "Token has expired"});
             return;
         }
 
