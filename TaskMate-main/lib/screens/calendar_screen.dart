@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskmate/screens/settings_screen.dart';
+import 'package:taskmate/cubit/tasks_cubit.dart';
+import 'package:taskmate/cubit/auth_cubit.dart';
+import 'package:taskmate/models/task_model.dart';
 import 'contact_management_screen.dart';
 import 'home_screen.dart' as home;
 import '../widgets/add_task_popup.dart';
 import '../widgets/view_task_popup.dart'; // Importez la nouvelle popup
 import '../widgets/custom_bottom_bar.dart';
 import '../widgets/task_card.dart';
+import '../widgets/task_detail_popup.dart'; // Added import for TaskDetailPopup
 
 void _showAddTaskModal(BuildContext context) {
   showModalBottomSheet(
@@ -25,7 +30,7 @@ void _showAddTaskModal(BuildContext context) {
   );
 }
 
-void showViewTasksPopup(BuildContext context) {
+void showViewTasksPopup(BuildContext context, DateTime? selectedDate) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -50,6 +55,25 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   int _selectedIndex = 1;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = DateTime.now();
+    // Fetch tasks for today when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthLoggedIn) {
+        context.read<TasksCubit>().fetchTasks(
+              token: authState.user.token,
+              date: _selectedDay,
+            );
+      }
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -84,11 +108,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-  CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      _selectedDay = selectedDay;
+      _focusedDay = focusedDay;
+    });
 
-  @override
+    // Fetch tasks for the selected date
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthLoggedIn) {
+      context.read<TasksCubit>().fetchTasks(
+            token: authState.user.token,
+            date: selectedDay,
+          );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,12 +173,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           selectedDayPredicate: (day) {
                             return isSameDay(_selectedDay, day);
                           },
-                          onDaySelected: (selectedDay, focusedDay) {
-                            setState(() {
-                              _selectedDay = selectedDay;
-                              _focusedDay = focusedDay;
-                            });
-                          },
+                          onDaySelected: _onDaySelected,
                           onFormatChanged: (format) {
                             if (_calendarFormat != format) {
                               setState(() {
@@ -349,7 +379,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           rowHeight: 70.0,
                         ),
                       ),
-                      SizedBox(height: 40),
+                      SizedBox(height: 20),
+
+                      // Selected date display
+                      if (_selectedDay != null) ...[
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: Text(
+                            'Tasks for ${_selectedDay!.day}/${_selectedDay!.month}/${_selectedDay!.year}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF074361),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                      ],
+
                       Container(
                         width: 220,
                         height: 50,
@@ -363,8 +411,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            showViewTasksPopup(
-                                context); // Affichez la popup ici
+                            showViewTasksPopup(context, _selectedDay);
                           },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,

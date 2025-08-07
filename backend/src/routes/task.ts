@@ -69,19 +69,59 @@ taskRouter.get("/", auth, async (req: AuthRequest, res) => {
 taskRouter.put("/:taskId", auth, async (req: AuthRequest, res) => {
     try {
         const { taskId } = req.params;
-        const { name, description, date, time, priority, contact } = req.body;
+        const { name, description, date, time, priority, contact, status } = req.body;
         
         // Combine date and time strings from frontend into a single Date object
         const dueAtDateTime = new Date(date + 'T' + time);
         
+        const updateData: any = {
+            name: name,
+            description: description,
+            dueAt: dueAtDateTime,
+            priority: priority,
+            contact: contact,
+            updatedAt: new Date(),
+        };
+
+        // Only update status if it's provided
+        if (status !== undefined) {
+            updateData.status = status;
+        }
+        
+        const [updatedTask] = await db
+            .update(tasks)
+            .set(updateData)
+            .where(eq(tasks.id, taskId))
+            .returning();
+        
+        res.json(updatedTask);
+
+    } catch(e) {
+        res.status(500).json({error: e});
+    }
+
+});
+
+// New endpoint specifically for updating task status
+taskRouter.patch("/:taskId/status", auth, async (req: AuthRequest, res) => {
+    try {
+        const { taskId } = req.params;
+        const { status } = req.body;
+        
+        if (!status || typeof status !== 'string') {
+            return res.status(400).json({ error: 'Status is required and must be a string' });
+        }
+
+        // Validate status values
+        const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid status. Must be one of: pending, in_progress, completed, cancelled' });
+        }
+        
         const [updatedTask] = await db
             .update(tasks)
             .set({
-                name: name,
-                description: description,
-                dueAt: dueAtDateTime,
-                priority: priority,
-                contact: contact,
+                status: status,
                 updatedAt: new Date(),
             })
             .where(eq(tasks.id, taskId))

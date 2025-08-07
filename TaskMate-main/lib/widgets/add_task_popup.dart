@@ -6,6 +6,7 @@ import 'package:taskmate/cubit/add_new_task_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
 import 'package:taskmate/cubit/tasks_cubit.dart';
 import '../widgets/task_card.dart';
+import '../widgets/task_category_chip.dart';
 
 class AddTaskModal extends StatefulWidget {
   final void Function(TaskCard) onTaskAdded;
@@ -23,6 +24,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
   String _selectedPriority = 'Medium priority';
+  String _selectedStatus = 'pending';
   final List<Contact> _selectedContacts = [];
   List<Contact> _allContacts = [];
   bool _contactsLoading = true;
@@ -69,6 +71,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
         date: _dateController.text,
         time: _timeController.text,
         priority: _selectedPriority,
+        status: _selectedStatus,
         contacts: _selectedContacts,
         token: token ?? '',
       );
@@ -271,6 +274,68 @@ class _AddTaskModalState extends State<AddTaskModal> {
             onChanged: (value) {
               setState(() {
                 _selectedPriority = value!;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusDropdown(double screenWidth, double screenHeight) {
+    return Container(
+      padding: EdgeInsets.all(screenWidth * 0.008),
+      decoration: BoxDecoration(
+        color: const Color(0xEAECECBF),
+        borderRadius: BorderRadius.circular(screenWidth * 0.05),
+        border: Border.all(
+          color: const Color(0xFF073F5C),
+          width: 3.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+                left: screenWidth * 0.04, top: screenWidth * 0.02),
+            child: Row(
+              children: [
+                Icon(Icons.task_alt,
+                    color: Color(0xFF073F5C), size: screenWidth * 0.05),
+                SizedBox(width: screenWidth * 0.02),
+                Text(
+                  'Status',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Roboto',
+                    fontSize: screenWidth * 0.05,
+                    color: Color(0xFF073F5C),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          DropdownButtonFormField<String>(
+            value: _selectedStatus,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(
+                  vertical: screenHeight * 0.01,
+                  horizontal: screenWidth * 0.04),
+              border: InputBorder.none,
+            ),
+            items: ['pending', 'in_progress'].map((status) {
+              return DropdownMenuItem<String>(
+                value: status,
+                child: Text(
+                  status.replaceAll('_', ' ').toUpperCase(),
+                  style: TextStyle(fontSize: screenWidth * 0.045),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedStatus = value!;
               });
             },
           ),
@@ -545,6 +610,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
                           ),
                           SizedBox(height: screenHeight * 0.02),
                           _buildPriorityDropdown(screenWidth, screenHeight),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildStatusDropdown(screenWidth, screenHeight),
                           SizedBox(height: screenHeight * 0.02),
                           _buildContactField(screenWidth, screenHeight),
                           SizedBox(height: screenHeight * 0.03),

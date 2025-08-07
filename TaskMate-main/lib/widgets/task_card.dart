@@ -12,7 +12,9 @@ class TaskCard extends StatelessWidget {
   final String name; // Attribute for task name
   final String date; // Attribute for task date
   final List<String> contacts; // Attribute for task contacts
+  final String status; // Add status field
   final VoidCallback? onTap; // Add onTap callback
+  final Function(String)? onStatusChanged; // Add status change callback
 
   const TaskCard({
     super.key,
@@ -23,7 +25,9 @@ class TaskCard extends StatelessWidget {
     required this.name,
     required this.date,
     required this.contacts,
+    required this.status,
     this.onTap, // Add onTap parameter
+    this.onStatusChanged, // Add status change parameter
   });
 
   @override
@@ -40,6 +44,8 @@ class TaskCard extends StatelessWidget {
           name: name,
           date: date,
           contacts: contacts,
+          status: status,
+          onStatusChanged: onStatusChanged,
         ),
       ),
     );
@@ -54,6 +60,8 @@ class _CardContent extends StatelessWidget {
   final String name;
   final String date;
   final List<String> contacts;
+  final String status;
+  final Function(String)? onStatusChanged;
 
   const _CardContent({
     required this.time,
@@ -63,6 +71,8 @@ class _CardContent extends StatelessWidget {
     required this.name,
     required this.date,
     required this.contacts,
+    required this.status,
+    this.onStatusChanged,
   });
 
   @override
@@ -76,7 +86,7 @@ class _CardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _TimeAndPriority(time: time, priority: priority),
+          _TimeAndPriority(time: time, priority: priority, status: status),
           const SizedBox(height: 9),
           Text(
             name,
@@ -113,6 +123,8 @@ class _CardContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 9),
+          // Status indicator
+          _StatusIndicator(status: status, onStatusChanged: onStatusChanged),
           // Removed contact avatars section
         ],
       ),
@@ -123,10 +135,12 @@ class _CardContent extends StatelessWidget {
 class _TimeAndPriority extends StatelessWidget {
   final String time;
   final String priority;
+  final String status;
 
   const _TimeAndPriority({
     required this.time,
     required this.priority,
+    required this.status,
   });
 
   @override
@@ -183,6 +197,96 @@ class _TimeAndPriority extends StatelessWidget {
         return Colors.green;
       default:
         return Colors.grey; // Default color if priority is not recognized
+    }
+  }
+}
+
+class _StatusIndicator extends StatelessWidget {
+  final String status;
+  final Function(String)? onStatusChanged;
+
+  const _StatusIndicator({
+    required this.status,
+    this.onStatusChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Color statusColor = _getStatusColor(status);
+    String statusText = _getStatusText(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: statusColor, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _getStatusIcon(status),
+            size: 16,
+            color: statusColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            statusText,
+            style: TextStyle(
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              color: statusColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'in_progress':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'in_progress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Icons.schedule;
+      case 'in_progress':
+        return Icons.play_circle_outline;
+      case 'completed':
+        return Icons.check_circle;
+      case 'cancelled':
+        return Icons.cancel;
+      default:
+        return Icons.help;
     }
   }
 }

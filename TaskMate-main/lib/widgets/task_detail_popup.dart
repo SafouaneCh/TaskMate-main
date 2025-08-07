@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/task_model.dart';
+import '../cubit/tasks_cubit.dart';
+import '../cubit/auth_cubit.dart';
 
 class TaskDetailPopup extends StatelessWidget {
   final TaskModel task;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onClose;
+  final DateTime? filterDate;
 
   const TaskDetailPopup({
     super.key,
@@ -14,6 +18,7 @@ class TaskDetailPopup extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onClose,
+    this.filterDate,
   });
 
   @override
@@ -72,7 +77,7 @@ class TaskDetailPopup extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Task content
             Flexible(
               child: SingleChildScrollView(
@@ -90,7 +95,7 @@ class TaskDetailPopup extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    
+
                     // Priority and time row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -101,8 +106,10 @@ class TaskDetailPopup extends StatelessWidget {
                             vertical: screenHeight * 0.01,
                           ),
                           decoration: BoxDecoration(
-                            color: _getPriorityColor(task.priority).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                            color: _getPriorityColor(task.priority)
+                                .withOpacity(0.1),
+                            borderRadius:
+                                BorderRadius.circular(screenWidth * 0.02),
                             border: Border.all(
                               color: _getPriorityColor(task.priority),
                               width: 1,
@@ -138,7 +145,20 @@ class TaskDetailPopup extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    
+
+                    // Status section
+                    Text(
+                      'Status',
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.045,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF333333),
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.01),
+                    _buildStatusSection(context, screenWidth, screenHeight),
+                    SizedBox(height: screenHeight * 0.02),
+
                     // Description
                     if (task.description.isNotEmpty) ...[
                       Text(
@@ -160,7 +180,7 @@ class TaskDetailPopup extends StatelessWidget {
                       ),
                       SizedBox(height: screenHeight * 0.02),
                     ],
-                    
+
                     // Date and time details
                     Container(
                       padding: EdgeInsets.all(screenWidth * 0.03),
@@ -205,7 +225,7 @@ class TaskDetailPopup extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    
+
                     // Contacts section
                     if (task.contact.isNotEmpty) ...[
                       Text(
@@ -228,7 +248,8 @@ class TaskDetailPopup extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: Color(0xFF074361).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.02),
                               border: Border.all(
                                 color: Color(0xFF074361),
                                 width: 1,
@@ -247,7 +268,7 @@ class TaskDetailPopup extends StatelessWidget {
                       ),
                       SizedBox(height: screenHeight * 0.02),
                     ],
-                    
+
                     // Created and updated info
                     Container(
                       padding: EdgeInsets.all(screenWidth * 0.03),
@@ -280,7 +301,7 @@ class TaskDetailPopup extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Action buttons
             Container(
               padding: EdgeInsets.all(screenWidth * 0.04),
@@ -298,9 +319,11 @@ class TaskDetailPopup extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF074361),
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
+                        padding: EdgeInsets.symmetric(
+                            vertical: screenHeight * 0.015),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                          borderRadius:
+                              BorderRadius.circular(screenWidth * 0.02),
                         ),
                       ),
                     ),
@@ -320,9 +343,11 @@ class TaskDetailPopup extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
+                        padding: EdgeInsets.symmetric(
+                            vertical: screenHeight * 0.015),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                          borderRadius:
+                              BorderRadius.circular(screenWidth * 0.02),
                         ),
                       ),
                     ),
@@ -336,6 +361,132 @@ class TaskDetailPopup extends StatelessWidget {
     );
   }
 
+  Widget _buildStatusSection(
+      BuildContext context, double screenWidth, double screenHeight) {
+    final statuses = [
+      {
+        'value': 'pending',
+        'label': 'Pending',
+        'color': Colors.orange,
+        'icon': Icons.schedule
+      },
+      {
+        'value': 'in_progress',
+        'label': 'In Progress',
+        'color': Colors.blue,
+        'icon': Icons.play_circle_outline
+      },
+      {
+        'value': 'completed',
+        'label': 'Completed',
+        'color': Colors.green,
+        'icon': Icons.check_circle
+      },
+      {
+        'value': 'cancelled',
+        'label': 'Cancelled',
+        'color': Colors.red,
+        'icon': Icons.cancel
+      },
+    ];
+
+    return Container(
+      padding: EdgeInsets.all(screenWidth * 0.03),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(screenWidth * 0.02),
+        border: Border.all(color: Colors.grey[300]!, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Change Status',
+            style: TextStyle(
+              fontSize: screenWidth * 0.04,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF333333),
+            ),
+          ),
+          SizedBox(height: screenHeight * 0.01),
+          Wrap(
+            spacing: screenWidth * 0.02,
+            runSpacing: screenHeight * 0.01,
+            children: statuses.map((status) {
+              final isSelected = task.status == status['value'];
+              return GestureDetector(
+                onTap: () =>
+                    _updateTaskStatus(context, status['value'] as String),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.03,
+                    vertical: screenHeight * 0.008,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? (status['color'] as Color).withOpacity(0.2)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                    border: Border.all(
+                      color: isSelected
+                          ? status['color'] as Color
+                          : Colors.grey[300]!,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        status['icon'] as IconData,
+                        size: screenWidth * 0.04,
+                        color: isSelected
+                            ? status['color'] as Color
+                            : Colors.grey[600],
+                      ),
+                      SizedBox(width: screenWidth * 0.01),
+                      Text(
+                        status['label'] as String,
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.035,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected
+                              ? status['color'] as Color
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _updateTaskStatus(BuildContext context, String newStatus) {
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthLoggedIn) {
+      context.read<TasksCubit>().updateTaskStatus(
+            taskId: task.id,
+            status: newStatus,
+            token: authState.user.token,
+            filterDate: filterDate,
+          );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Status updated to ${newStatus.replaceAll('_', ' ')}'),
+          backgroundColor: _getStatusColor(newStatus),
+        ),
+      );
+
+      Navigator.of(context).pop();
+    }
+  }
+
   Color _getPriorityColor(String priority) {
     switch (priority.toLowerCase()) {
       case 'high priority':
@@ -344,6 +495,21 @@ class TaskDetailPopup extends StatelessWidget {
         return Colors.orange;
       case 'low priority':
         return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'in_progress':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
       default:
         return Colors.grey;
     }
@@ -376,4 +542,4 @@ class TaskDetailPopup extends StatelessWidget {
       },
     );
   }
-} 
+}

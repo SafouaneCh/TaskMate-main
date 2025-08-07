@@ -32,6 +32,7 @@ class TasksCubit extends Cubit<TasksState> {
     required String priority,
     required String contact,
     required String token,
+    String? status,
     DateTime? filterDate,
   }) async {
     try {
@@ -44,8 +45,28 @@ class TasksCubit extends Cubit<TasksState> {
         priority: priority,
         contact: contact,
         token: token,
+        status: status,
       );
       // Refresh tasks after update with the filter date
+      fetchTasks(token: token, date: filterDate);
+    } catch (e) {
+      emit(TasksError(e.toString()));
+    }
+  }
+
+  Future<void> updateTaskStatus({
+    required String taskId,
+    required String status,
+    required String token,
+    DateTime? filterDate,
+  }) async {
+    try {
+      await taskRemoteRepository.updateTaskStatus(
+        taskId: taskId,
+        status: status,
+        token: token,
+      );
+      // Refresh tasks after status update with the filter date
       fetchTasks(token: token, date: filterDate);
     } catch (e) {
       emit(TasksError(e.toString()));

@@ -10,6 +10,7 @@ class TaskManager {
       name: 'Doctor Appointment',
       date: '2024-09-01',
       contacts: [], // No contacts for this task
+      status: 'completed',
     ),
     TaskCard(
       time: '10 am',
@@ -19,6 +20,7 @@ class TaskManager {
       name: 'Grocery Shopping',
       date: '2024-09-01',
       contacts: ['Achraf', 'Emily'],
+      status: 'pending',
     ),
     TaskCard(
       time: '11 am',
@@ -28,6 +30,7 @@ class TaskManager {
       name: 'Training Session',
       date: '2024-09-01',
       contacts: ['Aimad', 'Akram'],
+      status: 'pending',
     ),
     TaskCard(
       time: '3 pm',
@@ -37,6 +40,7 @@ class TaskManager {
       name: 'Project Work',
       date: '2024-09-01',
       contacts: ['Salma', 'Emily'],
+      status: 'in_progress',
     ),
     TaskCard(
       time: '5 pm',
@@ -46,6 +50,7 @@ class TaskManager {
       name: 'Friends Meetup',
       date: '2024-09-01',
       contacts: ['Badr', 'Chihab'],
+      status: 'pending',
     ),
     TaskCard(
       time: '6 pm',
@@ -55,6 +60,7 @@ class TaskManager {
       name: 'Family Dinner',
       date: '2024-09-01',
       contacts: ['Chihab', 'Emily'],
+      status: 'completed',
     ),
   ];
 

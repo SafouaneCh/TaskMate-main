@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
-import 'package:taskmate/widgets/task_data.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:taskmate/cubit/tasks_cubit.dart';
+import 'package:taskmate/cubit/auth_cubit.dart';
+import 'package:taskmate/models/task_model.dart';
 import 'task_card.dart'; // Import your TaskCard class
 // Import the utility file for getTasks
 
@@ -21,17 +24,9 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
     final screenSize = MediaQuery.of(context).size;
     final screenHeight = screenSize.height;
     final screenWidth = screenSize.width;
-    
+
     // Format the current date
     String formattedDate = DateFormat('MMMM d, yyyy').format(DateTime.now());
-
-    List<TaskCard> tasks = TaskManager.getTasks(); // Use the getTasks function
-
-    List<TaskCard> filteredTasks = tasks.where((task) {
-      if (_selectedCategory == 'All') return true;
-      if (_selectedCategory == 'Completed') return task.isCompleted;
-      return !task.isCompleted;
-    }).toList();
 
     return DraggableScrollableSheet(
       initialChildSize: 0.65,
@@ -60,7 +55,8 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                       margin: EdgeInsets.only(bottom: screenHeight * 0.02),
                       decoration: BoxDecoration(
                         color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(screenWidth * 0.005),
+                        borderRadius:
+                            BorderRadius.circular(screenWidth * 0.005),
                       ),
                     ),
                   ),
@@ -90,55 +86,75 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                       _buildCategoryButton('All', screenWidth, screenHeight),
                       _buildCategoryButton(
                           'Completed', screenWidth, screenHeight),
-                      _buildCategoryButton('Pending', screenWidth, screenHeight),
+                      _buildCategoryButton(
+                          'Pending', screenWidth, screenHeight),
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   // Tasks list
                   Expanded(
-                    child: filteredTasks.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.task_alt,
-                                  size: screenWidth * 0.15,
-                                  color: Colors.grey[400],
-                                ),
-                                SizedBox(height: screenHeight * 0.02),
-                                Text(
-                                  'No tasks found',
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.05,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
+                    child: BlocBuilder<TasksCubit, TasksState>(
+                      builder: (context, state) {
+                        if (state is TasksLoading) {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (state is TasksLoaded) {
+                          List<TaskModel> filteredTasks =
+                              state.tasks.where((task) {
+                            if (_selectedCategory == 'All') return true;
+                            if (_selectedCategory == 'Completed')
+                              return task.status == 'completed';
+                            if (_selectedCategory == 'Pending')
+                              return task.status == 'pending';
+                            return true;
+                          }).toList();
+
+                          if (filteredTasks.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.task_alt,
+                                    size: screenWidth * 0.15,
+                                    color: Colors.grey[400],
                                   ),
-                                ),
-                                SizedBox(height: screenHeight * 0.01),
-                                Text(
-                                  'Add a new task to get started',
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.04,
-                                    color: Colors.grey[500],
+                                  SizedBox(height: screenHeight * 0.02),
+                                  Text(
+                                    'No tasks found',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.05,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
+                                  SizedBox(height: screenHeight * 0.01),
+                                  Text(
+                                    'Add a new task to get started',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.04,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
                             controller: scrollController,
                             itemCount: filteredTasks.length,
                             itemBuilder: (context, index) {
                               final task = filteredTasks[index];
                               return Container(
-                                margin:
-                                    EdgeInsets.only(bottom: screenHeight * 0.015),
+                                margin: EdgeInsets.only(
+                                    bottom: screenHeight * 0.015),
                                 padding: EdgeInsets.all(screenWidth * 0.04),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[50],
-                                  borderRadius:
-                                      BorderRadius.circular(screenWidth * 0.025),
+                                  borderRadius: BorderRadius.circular(
+                                      screenWidth * 0.025),
                                   border: Border.all(
                                     color: Colors.grey[300]!,
                                     width: 1,
@@ -147,17 +163,29 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                                 child: Row(
                                   children: [
                                     Checkbox(
-                                      value: task.isCompleted,
+                                      value: task.status == 'completed',
                                       onChanged: (value) {
-                                        // Note: TaskCard is immutable, so we can't modify isCompleted directly
-                                        // In a real app, you would update the task in the data source
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Task completion status updated'),
-                                          ),
-                                        );
+                                        final authState =
+                                            context.read<AuthCubit>().state;
+                                        if (authState is AuthLoggedIn) {
+                                          final newStatus = value == true
+                                              ? 'completed'
+                                              : 'pending';
+                                          context
+                                              .read<TasksCubit>()
+                                              .updateTaskStatus(
+                                                taskId: task.id,
+                                                status: newStatus,
+                                                token: authState.user.token,
+                                              );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content:
+                                                  Text('Task status updated'),
+                                            ),
+                                          );
+                                        }
                                       },
                                     ),
                                     Expanded(
@@ -170,7 +198,8 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.045,
                                               fontWeight: FontWeight.bold,
-                                              decoration: task.isCompleted
+                                              decoration: task.status ==
+                                                      'completed'
                                                   ? TextDecoration.lineThrough
                                                   : null,
                                             ),
@@ -181,12 +210,14 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                                               style: TextStyle(
                                                 fontSize: screenWidth * 0.04,
                                                 color: Colors.grey[600],
-                                                decoration: task.isCompleted
+                                                decoration: task.status ==
+                                                        'completed'
                                                     ? TextDecoration.lineThrough
                                                     : null,
                                               ),
                                             ),
-                                          SizedBox(height: screenHeight * 0.005),
+                                          SizedBox(
+                                              height: screenHeight * 0.005),
                                           Row(
                                             children: [
                                               Icon(
@@ -194,15 +225,56 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                                                 size: screenWidth * 0.04,
                                                 color: Colors.grey[600],
                                               ),
-                                              SizedBox(width: screenWidth * 0.01),
+                                              SizedBox(
+                                                  width: screenWidth * 0.01),
                                               Text(
-                                                '${task.date} ${task.time}',
+                                                '${DateFormat('yyyy-MM-dd').format(task.dueAt)} ${DateFormat('HH:mm').format(task.dueAt)}',
                                                 style: TextStyle(
                                                   fontSize: screenWidth * 0.035,
                                                   color: Colors.grey[600],
                                                 ),
                                               ),
                                             ],
+                                          ),
+                                          SizedBox(
+                                              height: screenHeight * 0.005),
+                                          // Status indicator
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  _getStatusColor(task.status)
+                                                      .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                  color: _getStatusColor(
+                                                      task.status),
+                                                  width: 1),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  _getStatusIcon(task.status),
+                                                  size: 12,
+                                                  color: _getStatusColor(
+                                                      task.status),
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  _getStatusText(task.status),
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 10,
+                                                    color: _getStatusColor(
+                                                        task.status),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -211,7 +283,14 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                                 ),
                               );
                             },
-                          ),
+                          );
+                        } else {
+                          return Center(
+                            child: Text('No tasks available'),
+                          );
+                        }
+                      },
+                    ),
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   Container(
@@ -283,5 +362,50 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
         ),
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'in_progress':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'in_progress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Icons.schedule;
+      case 'in_progress':
+        return Icons.play_circle_outline;
+      case 'completed':
+        return Icons.check_circle;
+      case 'cancelled':
+        return Icons.cancel;
+      default:
+        return Icons.help;
+    }
   }
 }

@@ -6,6 +6,7 @@ class TaskModel {
   final DateTime dueAt;
   final String priority;
   final String contact;
+  final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
   const TaskModel({
@@ -16,6 +17,7 @@ class TaskModel {
     required this.dueAt,
     required this.priority,
     required this.contact,
+    required this.status,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -28,6 +30,7 @@ class TaskModel {
     DateTime? dueAt,
     String? priority,
     String? contact,
+    String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -39,6 +42,7 @@ class TaskModel {
       dueAt: dueAt ?? this.dueAt,
       priority: priority ?? this.priority,
       contact: contact ?? this.contact,
+      status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -52,6 +56,7 @@ class TaskModel {
       description: json['description'] ?? '',
       priority: json['priority'] ?? '',
       contact: json['contact'] ?? '',
+      status: json['status'] ?? 'pending',
       dueAt: DateTime.parse(json['dueAt']),
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
@@ -67,6 +72,7 @@ class TaskModel {
       'dueAt': dueAt.millisecondsSinceEpoch,
       'priority': priority,
       'contact': contact,
+      'status': status,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt.millisecondsSinceEpoch,
     };
@@ -74,7 +80,7 @@ class TaskModel {
 
   @override
   String toString() {
-    return '''TaskModel(id: $id, uid: $uid, name: $name, description: $description, dueAt: $dueAt, priority: $priority, contact: $contact, createdAt: $createdAt, updatedAt: $updatedAt)''';
+    return '''TaskModel(id: $id, uid: $uid, name: $name, description: $description, dueAt: $dueAt, priority: $priority, contact: $contact, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)''';
   }
 
   @override
@@ -89,6 +95,7 @@ class TaskModel {
         other.dueAt == dueAt &&
         other.priority == priority &&
         other.contact == contact &&
+        other.status == status &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -102,6 +109,7 @@ class TaskModel {
         dueAt.hashCode ^
         priority.hashCode ^
         contact.hashCode ^
+        status.hashCode ^
         createdAt.hashCode ^
         updatedAt.hashCode;
   }

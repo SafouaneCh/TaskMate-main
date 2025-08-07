@@ -116,13 +116,37 @@ class _HomeScreenState extends State<HomeScreen> {
       time: DateFormat('HH:mm').format(task.dueAt),
       description: task.description,
       priority: task.priority,
-      isCompleted:
-          false, // TaskModel doesn't have isCompleted, default to false
+      isCompleted: task.status == 'completed',
       name: task.name,
       date: DateFormat('yyyy-MM-dd').format(task.dueAt),
       contacts: task.contact.isNotEmpty ? task.contact.split(',') : [],
+      status: task.status,
       onTap: () => _showTaskDetailModal(context, task),
+      onStatusChanged: (newStatus) =>
+          _updateTaskStatus(context, task, newStatus),
     );
+  }
+
+  void _updateTaskStatus(
+      BuildContext context, TaskModel task, String newStatus) {
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthLoggedIn) {
+      context.read<TasksCubit>().updateTaskStatus(
+            taskId: task.id,
+            status: newStatus,
+            token: authState.user.token,
+            filterDate: _selectedDay,
+          );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Task status updated to ${newStatus.replaceAll('_', ' ')}')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Authentication error')),
+      );
+    }
   }
 
   void _showTaskDetailModal(BuildContext context, TaskModel task) {
@@ -131,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext context) {
         return TaskDetailPopup(
           task: task,
+          filterDate: _selectedDay,
           onEdit: () {
             Navigator.of(context).pop();
             _showEditTaskModal(context, task);

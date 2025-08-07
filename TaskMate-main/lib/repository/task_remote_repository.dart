@@ -14,6 +14,7 @@ class TaskRemoteRepository {
     required String priority,
     required String contact,
     required String token,
+    String status = 'pending',
   }) async {
     try {
       final res = await http.post(Uri.parse("${Constants.backendUri}/tasks"),
@@ -28,6 +29,7 @@ class TaskRemoteRepository {
             'time': time, // <-- changed
             'priority': priority,
             'contact': contact,
+            'status': status,
           }));
 
       if (res.statusCode != 201) {
@@ -46,13 +48,14 @@ class TaskRemoteRepository {
   }) async {
     try {
       String url = "${Constants.backendUri}/tasks";
-      
+
       // Add date parameter if provided
       if (date != null) {
-        final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+        final dateString =
+            "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
         url += "?date=$dateString";
       }
-      
+
       final res = await http.get(
         Uri.parse(url),
         headers: {
@@ -81,21 +84,56 @@ class TaskRemoteRepository {
     required String priority,
     required String contact,
     required String token,
+    String? status,
   }) async {
     try {
+      final body = {
+        'name': name,
+        'description': description,
+        'date': date,
+        'time': time,
+        'priority': priority,
+        'contact': contact,
+      };
+
+      // Only include status if it's provided
+      if (status != null) {
+        body['status'] = status;
+      }
+
       final res = await http.put(
         Uri.parse("${Constants.backendUri}/tasks/$taskId"),
         headers: {
           'Content-Type': 'application/json',
           'x-auth-token': token,
         },
+        body: jsonEncode(body),
+      );
+
+      if (res.statusCode != 200) {
+        throw jsonDecode(res.body)['error'];
+      }
+
+      return TaskModel.fromJson(jsonDecode(res.body));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<TaskModel> updateTaskStatus({
+    required String taskId,
+    required String status,
+    required String token,
+  }) async {
+    try {
+      final res = await http.patch(
+        Uri.parse("${Constants.backendUri}/tasks/$taskId/status"),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
         body: jsonEncode({
-          'name': name,
-          'description': description,
-          'date': date,
-          'time': time,
-          'priority': priority,
-          'contact': contact,
+          'status': status,
         }),
       );
 
