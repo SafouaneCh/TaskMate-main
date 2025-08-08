@@ -5,14 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskmate/screens/settings_screen.dart';
 import 'package:taskmate/cubit/tasks_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
-import 'package:taskmate/models/task_model.dart';
 import 'contact_management_screen.dart';
 import 'home_screen.dart' as home;
 import '../widgets/add_task_popup.dart';
 import '../widgets/view_task_popup.dart'; // Importez la nouvelle popup
 import '../widgets/custom_bottom_bar.dart';
 import '../widgets/task_card.dart';
-import '../widgets/task_detail_popup.dart'; // Added import for TaskDetailPopup
+// Added import for TaskDetailPopup
 
 void _showAddTaskModal(BuildContext context) {
   showModalBottomSheet(

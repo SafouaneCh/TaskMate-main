@@ -15,6 +15,7 @@ import 'notifications_screen.dart';
 import 'privacy_security_screen.dart';
 import 'help_support_screen.dart';
 import 'about_screen.dart';
+import '../widgets/offline_status_indicator.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -74,6 +75,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => EditProfileScreen()),
+    );
+  }
+
+  void _showSyncSettingsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Sync Settings'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const OfflineStatusIndicator(),
+              const SizedBox(height: 16),
+              const Text(
+                'TaskMate works offline-first:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text('• All tasks are saved locally first'),
+              const Text('• Changes sync automatically when online'),
+              const Text('• Your data is always safe and accessible'),
+              const Text('• No internet required for basic operations'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -221,6 +256,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             Divider(height: 1, color: Colors.grey[300]),
                             _buildSettingsItem(
+                              icon: Icons.sync,
+                              title: 'Sync Settings',
+                              subtitle: 'Manage offline mode and sync',
+                              onTap: () {
+                                _showSyncSettingsDialog(context);
+                              },
+                              screenWidth: screenWidth,
+                              screenHeight: screenHeight,
+                            ),
+                            Divider(height: 1, color: Colors.grey[300]),
+                            _buildSettingsItem(
                               icon: Icons.security,
                               title: 'Privacy & Security',
                               subtitle: 'Manage your privacy settings',
@@ -271,7 +317,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: screenHeight * 0.03),
                       // Logout Button
-                      Container(
+                      SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {

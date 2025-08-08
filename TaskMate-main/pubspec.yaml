@@ -20,6 +20,11 @@ dependencies:
   flutter_svg: ^2.0.10  # UPDATED: Critical fix for build errors
   sqflite: ^2.4.2
   path: ^1.9.1
+  supabase_flutter: ^2.3.4
+  connectivity_plus: ^5.0.2
+  firebase_messaging: ^14.7.20
+  firebase_core: ^2.27.1
+  flutter_local_notifications: ^17.2.2
   
 
   flutter_launcher_icons: ^0.14.4  # UPDATED: Compatible with Flutter 3.32

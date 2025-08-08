@@ -1,14 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:taskmate/models/task_model.dart';
-import 'package:taskmate/repository/task_remote_repository.dart';
+import 'package:taskmate/repository/task_hybrid_repository.dart';
 
 part 'add_new_task_state.dart';
 
 class AddNewTaskCubit extends Cubit<AddNewTaskState> {
   AddNewTaskCubit() : super(AddNewTakInitial());
 
-  final taskRemoteRepository = TaskRemoteRepository();
+  final taskHybridRepository = TaskHybridRepository();
 
   Future<void> createNewTask({
     required String name,
@@ -23,7 +23,7 @@ class AddNewTaskCubit extends Cubit<AddNewTaskState> {
     try {
       emit(AddNewTakLoading());
       final contactString = contacts.map((c) => c.displayName).join(",");
-      final taskModel = await taskRemoteRepository.createTask(
+      final taskModel = await taskHybridRepository.createTask(
           name: name,
           description: description,
           date: date,

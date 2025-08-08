@@ -103,10 +103,12 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                           List<TaskModel> filteredTasks =
                               state.tasks.where((task) {
                             if (_selectedCategory == 'All') return true;
-                            if (_selectedCategory == 'Completed')
+                            if (_selectedCategory == 'Completed') {
                               return task.status == 'completed';
-                            if (_selectedCategory == 'Pending')
+                            }
+                            if (_selectedCategory == 'Pending') {
                               return task.status == 'pending';
+                            }
                             return true;
                           }).toList();
 

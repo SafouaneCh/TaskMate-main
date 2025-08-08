@@ -6,7 +6,6 @@ import 'package:taskmate/cubit/add_new_task_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
 import 'package:taskmate/cubit/tasks_cubit.dart';
 import '../widgets/task_card.dart';
-import '../widgets/task_category_chip.dart';
 
 class AddTaskModal extends StatefulWidget {
   final void Function(TaskCard) onTaskAdded;

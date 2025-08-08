@@ -9,7 +9,6 @@ import 'package:taskmate/screens/home_screen.dart' as home;
 import 'package:taskmate/screens/calendar_screen.dart';
 import 'package:taskmate/screens/settings_screen.dart';
 import 'package:taskmate/widgets/add_task_popup.dart';
-import '../widgets/ContactService.dart';
 import '../cubit/auth_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

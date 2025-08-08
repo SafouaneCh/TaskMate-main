@@ -13,6 +13,7 @@ import '../cubit/auth_cubit.dart';
 import '../widgets/add_task_popup.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_popup.dart';
+import '../widgets/offline_status_indicator.dart';
 import '../models/task_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -293,29 +294,32 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             SizedBox(width: screenWidth * 0.025),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Hi, $userName',
-                                  style: TextStyle(
-                                    height: 1.2,
-                                    fontSize: screenWidth * 0.05,
-                                    fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Hi, $userName',
+                                    style: TextStyle(
+                                      height: 1.2,
+                                      fontSize: screenWidth * 0.05,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  _getGreeting(),
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontSize: screenWidth * 0.04,
-                                    height: 1.2,
-                                    color: Color(0xFF333333),
+                                  Text(
+                                    _getGreeting(),
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: screenWidth * 0.04,
+                                      height: 1.2,
+                                      color: Color(0xFF333333),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                            const OfflineStatusIndicator(),
                             Spacer(),
                           ],
                         );

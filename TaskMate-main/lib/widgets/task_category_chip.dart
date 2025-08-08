@@ -5,10 +5,10 @@ class StatusSelectionWidget extends StatelessWidget {
   final Function(String) onStatusChanged;
 
   const StatusSelectionWidget({
-    Key? key,
+    super.key,
     required this.selectedStatus,
     required this.onStatusChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +41,14 @@ class StatusSelectionWidget extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected 
+                  color: isSelected
                       ? (status['color'] as Color).withOpacity(0.2)
                       : Colors.grey[100],
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? status['color'] as Color : Colors.grey[300]!,
+                    color: isSelected
+                        ? status['color'] as Color
+                        : Colors.grey[300]!,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -56,7 +58,9 @@ class StatusSelectionWidget extends StatelessWidget {
                     Icon(
                       _getStatusIcon(status['value'] as String),
                       size: 16,
-                      color: isSelected ? status['color'] as Color : Colors.grey[600],
+                      color: isSelected
+                          ? status['color'] as Color
+                          : Colors.grey[600],
                     ),
                     SizedBox(width: 4),
                     Text(
@@ -64,7 +68,9 @@ class StatusSelectionWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: isSelected ? status['color'] as Color : Colors.grey[600],
+                        color: isSelected
+                            ? status['color'] as Color
+                            : Colors.grey[600],
                       ),
                     ),
                   ],

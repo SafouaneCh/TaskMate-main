@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:taskmate/cubit/auth_cubit.dart';
 import 'package:taskmate/cubit/add_new_task_cubit.dart'; // Import AddNewTaskCubit
 import 'package:taskmate/cubit/tasks_cubit.dart'; // Import TasksCubit
+import 'package:taskmate/services/sync_service.dart';
+import 'package:taskmate/services/network_service.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart'; // Add this import
 import 'screens/signup_screen.dart'; // Add this import
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Supabase
+  await supabase.Supabase.initialize(
+    url: 'https://zipxfbleyssjmevkicrm.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppcHhmYmxleXNzam1ldmtpY3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDY2OTgsImV4cCI6MjA3MDIyMjY5OH0.AisljHcyHbZujvPdwCtRKKpJ3LBaBUTnYsswZjn3G34',
+  );
+
+  // Initialize sync services
+  await NetworkService().initialize();
+  await SyncService().initialize();
+
   runApp(const MyApp());
 }
 
@@ -57,7 +72,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    print('AuthCubit state in build: ' + _authCubit.state.toString());
+    print('AuthCubit state in build: ${_authCubit.state}');
 
     // Show loading screen while initializing
     if (!_isInitialized) {

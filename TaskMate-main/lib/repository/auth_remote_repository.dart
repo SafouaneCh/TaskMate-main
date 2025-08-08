@@ -75,7 +75,7 @@ class AuthRemoteRepository {
   Future<UserModel?> getUserData() async {
     try {
       final token = await spService.getToken();
-      print('Loaded token in getUserData: ' + (token ?? 'null'));
+      print('Loaded token in getUserData: ${token ?? 'null'}');
       if (token == null) {
         throw 'No token found! Please login first.';
       }

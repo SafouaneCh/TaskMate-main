@@ -1,18 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskmate/models/task_model.dart';
-import 'package:taskmate/repository/task_remote_repository.dart';
+import 'package:taskmate/repository/task_hybrid_repository.dart';
 
 part 'tasks_state.dart';
 
 class TasksCubit extends Cubit<TasksState> {
   TasksCubit() : super(TasksInitial());
-  final taskRemoteRepository = TaskRemoteRepository();
+  final taskHybridRepository = TaskHybridRepository();
 
   Future<void> fetchTasks({required String token, DateTime? date}) async {
     try {
       emit(TasksLoading());
       final tasks =
-          await taskRemoteRepository.getTasks(token: token, date: date);
+          await taskHybridRepository.getTasks(token: token, date: date);
       emit(TasksLoaded(tasks));
     } catch (e) {
       emit(TasksError(e.toString()));
@@ -36,7 +36,7 @@ class TasksCubit extends Cubit<TasksState> {
     DateTime? filterDate,
   }) async {
     try {
-      await taskRemoteRepository.updateTask(
+      await taskHybridRepository.updateTask(
         taskId: taskId,
         name: name,
         description: description,
@@ -61,7 +61,7 @@ class TasksCubit extends Cubit<TasksState> {
     DateTime? filterDate,
   }) async {
     try {
-      await taskRemoteRepository.updateTaskStatus(
+      await taskHybridRepository.updateTaskStatus(
         taskId: taskId,
         status: status,
         token: token,
@@ -79,7 +79,7 @@ class TasksCubit extends Cubit<TasksState> {
     DateTime? date,
   }) async {
     try {
-      await taskRemoteRepository.deleteTask(
+      await taskHybridRepository.deleteTask(
         taskId: taskId,
         token: token,
       );
