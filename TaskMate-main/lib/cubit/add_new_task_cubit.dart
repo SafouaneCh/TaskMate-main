@@ -17,6 +17,7 @@ class AddNewTaskCubit extends Cubit<AddNewTaskState> {
     required String status,
     required List<Contact> contacts,
     required String token,
+    required String userId,
     required String date,
     required String time,
   }) async {
@@ -31,7 +32,8 @@ class AddNewTaskCubit extends Cubit<AddNewTaskState> {
           priority: priority,
           contact: contactString,
           status: status,
-          token: token);
+          token: token,
+          userId: userId);
 
       emit(AddNewTakSucess(taskModel));
     } catch (e) {

@@ -5,6 +5,7 @@ import '../widgets/colors.dart';
 import 'home_screen.dart' as home;
 import '../widgets/custom_button.dart';
 import 'signup_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -232,20 +233,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           SizedBox(height: screenHeight * 0.03),
 
-                          // Forgot password checkbox
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Checkbox(value: false, onChanged: (value) {}),
-                              Text(
-                                'Forgot password !',
-                                style: TextStyle(
-                                  fontFamily: 'LeagueSpartan',
-                                  fontSize: screenWidth * 0.055,
-                                  color: Colors.black,
+                          // Forgot password link
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ForgotPasswordScreen(),
                                 ),
+                              );
+                            },
+                            child: Text(
+                              'Forgot password !',
+                              style: TextStyle(
+                                fontFamily: 'LeagueSpartan',
+                                fontSize: screenWidth * 0.055,
+                                color: blue1,
+                                decoration: TextDecoration.underline,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
+                            ),
                           ),
 
                           SizedBox(height: screenHeight * 0.04),

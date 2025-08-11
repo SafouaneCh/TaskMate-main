@@ -68,6 +68,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (authState is AuthLoggedIn) {
         context.read<TasksCubit>().fetchTasks(
               token: authState.user.token,
+              userId: authState.user.id,
               date: _selectedDay,
             );
       }
@@ -118,6 +119,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (authState is AuthLoggedIn) {
       context.read<TasksCubit>().fetchTasks(
             token: authState.user.token,
+            userId: authState.user.id,
             date: selectedDay,
           );
     }

@@ -8,19 +8,22 @@ class TasksCubit extends Cubit<TasksState> {
   TasksCubit() : super(TasksInitial());
   final taskHybridRepository = TaskHybridRepository();
 
-  Future<void> fetchTasks({required String token, DateTime? date}) async {
+  Future<void> fetchTasks({required String token, required String userId, DateTime? date}) async {
     try {
       emit(TasksLoading());
-      final tasks =
-          await taskHybridRepository.getTasks(token: token, date: date);
+      final tasks = await taskHybridRepository.getTasks(
+        token: token,
+        userId: userId,
+        date: date,
+      );
       emit(TasksLoaded(tasks));
     } catch (e) {
       emit(TasksError(e.toString()));
     }
   }
 
-  void refreshTasks({required String token, DateTime? date}) {
-    fetchTasks(token: token, date: date);
+  void refreshTasks({required String token, required String userId, DateTime? date}) {
+    fetchTasks(token: token, userId: userId, date: date);
   }
 
   Future<void> updateTask({
@@ -32,6 +35,7 @@ class TasksCubit extends Cubit<TasksState> {
     required String priority,
     required String contact,
     required String token,
+    required String userId,
     String? status,
     DateTime? filterDate,
   }) async {
@@ -48,7 +52,7 @@ class TasksCubit extends Cubit<TasksState> {
         status: status,
       );
       // Refresh tasks after update with the filter date
-      fetchTasks(token: token, date: filterDate);
+      fetchTasks(token: token, userId: userId, date: filterDate);
     } catch (e) {
       emit(TasksError(e.toString()));
     }
@@ -58,6 +62,7 @@ class TasksCubit extends Cubit<TasksState> {
     required String taskId,
     required String status,
     required String token,
+    required String userId,
     DateTime? filterDate,
   }) async {
     try {
@@ -67,7 +72,7 @@ class TasksCubit extends Cubit<TasksState> {
         token: token,
       );
       // Refresh tasks after status update with the filter date
-      fetchTasks(token: token, date: filterDate);
+      fetchTasks(token: token, userId: userId, date: filterDate);
     } catch (e) {
       emit(TasksError(e.toString()));
     }
@@ -76,6 +81,7 @@ class TasksCubit extends Cubit<TasksState> {
   Future<void> deleteTask({
     required String taskId,
     required String token,
+    required String userId,
     DateTime? date,
   }) async {
     try {
@@ -84,7 +90,7 @@ class TasksCubit extends Cubit<TasksState> {
         token: token,
       );
       // Refresh tasks after delete with the same date
-      fetchTasks(token: token, date: date);
+      fetchTasks(token: token, userId: userId, date: date);
     } catch (e) {
       emit(TasksError(e.toString()));
     }

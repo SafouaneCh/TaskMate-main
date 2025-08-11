@@ -14,6 +14,7 @@ import '../widgets/add_task_popup.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_popup.dart';
 import '../widgets/offline_status_indicator.dart';
+import '../widgets/edit_task_popup.dart';
 import '../models/task_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -39,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (authState is AuthLoggedIn) {
         context.read<TasksCubit>().fetchTasks(
               token: authState.user.token,
+              userId: authState.user.id,
               date: _selectedDay,
             );
       }
@@ -56,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (authState is AuthLoggedIn) {
       context.read<TasksCubit>().fetchTasks(
             token: authState.user.token,
+            userId: authState.user.id,
             date: selectedDay,
           );
     }
@@ -99,12 +102,13 @@ class _HomeScreenState extends State<HomeScreen> {
             onTaskAdded: (newTask) {
               // Refresh tasks after adding a new one
               final authState = context.read<AuthCubit>().state;
-              if (authState is AuthLoggedIn) {
-                context.read<TasksCubit>().refreshTasks(
-                      token: authState.user.token,
-                      date: _selectedDay,
-                    );
-              }
+                if (authState is AuthLoggedIn) {
+                  context.read<TasksCubit>().refreshTasks(
+                        token: authState.user.token,
+                        userId: authState.user.id,
+                        date: _selectedDay,
+                      );
+                }
             },
           ),
         );
@@ -136,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
             taskId: task.id,
             status: newStatus,
             token: authState.user.token,
+            userId: authState.user.id,
             filterDate: _selectedDay,
           );
       ScaffoldMessenger.of(context).showSnackBar(
@@ -171,31 +176,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showEditTaskModal(BuildContext context, TaskModel task) {
-    // For now, show a simple edit dialog
-    // In a full implementation, you would create a proper edit form
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit Task'),
-          content: Text(
-              'Edit functionality will be implemented with a proper form.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // TODO: Implement proper edit form
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Edit form coming soon!')),
-                );
-              },
-              child: Text('Edit'),
-            ),
-          ],
+        return EditTaskModal(
+          task: task,
+          filterDate: _selectedDay,
+          onTaskUpdated: () {
+            // Refresh tasks after updating
+            final authState = context.read<AuthCubit>().state;
+            if (authState is AuthLoggedIn) {
+              context.read<TasksCubit>().refreshTasks(
+                    token: authState.user.token,
+                    userId: authState.user.id,
+                    date: _selectedDay,
+                  );
+            }
+          },
         );
       },
     );
@@ -207,11 +204,13 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<TasksCubit>().deleteTask(
             taskId: task.id,
             token: authState.user.token,
+            userId: authState.user.id,
             date: _selectedDay,
           );
       // Refresh tasks for the current selected date after deletion
       context.read<TasksCubit>().refreshTasks(
             token: authState.user.token,
+            userId: authState.user.id,
             date: _selectedDay,
           );
       ScaffoldMessenger.of(context).showSnackBar(
@@ -645,10 +644,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         final authState =
                                             context.read<AuthCubit>().state;
                                         if (authState is AuthLoggedIn) {
-                                          context
-                                              .read<TasksCubit>()
-                                              .refreshTasks(
+                                          context.read<TasksCubit>().refreshTasks(
                                                 token: authState.user.token,
+                                                userId: authState.user.id,
                                                 date: _selectedDay,
                                               );
                                         }

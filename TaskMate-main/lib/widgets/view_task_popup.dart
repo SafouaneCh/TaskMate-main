@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskmate/cubit/tasks_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
 import 'package:taskmate/models/task_model.dart';
-import 'task_card.dart'; // Import your TaskCard class
 // Import the utility file for getTasks
 
 class ViewTasksPopup extends StatefulWidget {
@@ -179,6 +178,7 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                                                 taskId: task.id,
                                                 status: newStatus,
                                                 token: authState.user.token,
+                                                userId: authState.user.id,
                                               );
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(

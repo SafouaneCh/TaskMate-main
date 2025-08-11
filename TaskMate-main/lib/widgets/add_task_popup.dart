@@ -61,8 +61,10 @@ class _AddTaskModalState extends State<AddTaskModal> {
     if (_formKey.currentState!.validate()) {
       final authState = context.read<AuthCubit>().state;
       String? token;
+      String? userId;
       if (authState is AuthLoggedIn) {
         token = authState.user.token;
+        userId = authState.user.id;
       }
       BlocProvider.of<AddNewTaskCubit>(context).createNewTask(
         name: _nameController.text,
@@ -73,6 +75,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
         status: _selectedStatus,
         contacts: _selectedContacts,
         token: token ?? '',
+        userId: userId ?? '',
       );
       // Don't pop immediately, wait for success/error state
     }
@@ -480,9 +483,10 @@ class _AddTaskModalState extends State<AddTaskModal> {
           // Refresh tasks list
           final authState = context.read<AuthCubit>().state;
           if (authState is AuthLoggedIn) {
-            context
-                .read<TasksCubit>()
-                .refreshTasks(token: authState.user.token);
+            context.read<TasksCubit>().refreshTasks(
+                  token: authState.user.token,
+                  userId: authState.user.id,
+                );
           }
           // Close the popup
           Navigator.of(context).pop();

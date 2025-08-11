@@ -473,6 +473,7 @@ class TaskDetailPopup extends StatelessWidget {
             taskId: task.id,
             status: newStatus,
             token: authState.user.token,
+            userId: authState.user.id,
             filterDate: filterDate,
           );
 

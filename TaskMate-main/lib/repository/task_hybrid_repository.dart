@@ -19,6 +19,7 @@ class TaskHybridRepository {
     required String priority,
     required String contact,
     required String token,
+    required String userId,
     String status = 'pending',
   }) async {
     try {
@@ -29,7 +30,7 @@ class TaskHybridRepository {
       // Create task model
       final task = TaskModel(
         id: localId,
-        uid: '', // Will be set when synced
+        uid: userId,
         name: name,
         description: description,
         dueAt: dueAt,
@@ -80,6 +81,7 @@ class TaskHybridRepository {
   // Get tasks (offline-first)
   Future<List<TaskModel>> getTasks({
     required String token,
+    required String userId,
     DateTime? date,
   }) async {
     try {
@@ -87,9 +89,9 @@ class TaskHybridRepository {
       List<TaskModel> localTasks;
 
       if (date != null) {
-        localTasks = await _localRepository.getTasksByDate(date);
+        localTasks = await _localRepository.getTasksByDateForUser(userId, date);
       } else {
-        localTasks = await _localRepository.getAllTasks();
+        localTasks = await _localRepository.getAllTasksForUser(userId);
       }
 
       // Try to sync from remote if online
@@ -111,7 +113,7 @@ class TaskHybridRepository {
           }
 
           // Add local unsynced tasks
-          final unsyncedTasks = await _localRepository.getUnsyncedTasks();
+          final unsyncedTasks = await _localRepository.getUnsyncedTasksForUser(userId);
           for (final task in unsyncedTasks) {
             if (!mergedTasks.any((t) => t.id == task.id)) {
               mergedTasks.add(task);
@@ -283,9 +285,9 @@ class TaskHybridRepository {
   int get pendingSyncCount => _syncService.pendingSyncCount;
 
   // Force sync all pending changes
-  Future<void> forceSync() async {
+  Future<void> forceSync(String userId) async {
     if (_networkService.isConnected) {
-      final unsyncedTasks = await _localRepository.getUnsyncedTasks();
+      final unsyncedTasks = await _localRepository.getUnsyncedTasksForUser(userId);
       for (final task in unsyncedTasks) {
         await _syncService.syncUpdateTask(task);
       }

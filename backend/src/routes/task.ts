@@ -91,9 +91,13 @@ taskRouter.put("/:taskId", auth, async (req: AuthRequest, res) => {
         const [updatedTask] = await db
             .update(tasks)
             .set(updateData)
-            .where(eq(tasks.id, taskId))
+            .where(and(eq(tasks.id, taskId), eq(tasks.uid, req.user!)))
             .returning();
-        
+
+        if (!updatedTask) {
+            return res.status(404).json({ error: "Task not found" });
+        }
+
         res.json(updatedTask);
 
     } catch(e) {
@@ -124,9 +128,13 @@ taskRouter.patch("/:taskId/status", auth, async (req: AuthRequest, res) => {
                 status: status,
                 updatedAt: new Date(),
             })
-            .where(eq(tasks.id, taskId))
+            .where(and(eq(tasks.id, taskId), eq(tasks.uid, req.user!)))
             .returning();
-        
+
+        if (!updatedTask) {
+            return res.status(404).json({ error: "Task not found" });
+        }
+
         res.json(updatedTask);
 
     } catch(e) {
@@ -135,11 +143,18 @@ taskRouter.patch("/:taskId/status", auth, async (req: AuthRequest, res) => {
 
 });
 
-taskRouter.delete("/", auth, async (req: AuthRequest, res) => {
+taskRouter.delete("/:taskId", auth, async (req: AuthRequest, res) => {
     try {
-        const {taskId}: {taskId: string} = req.body;
-        await db.delete(tasks).where(eq(tasks.id, taskId));
-        
+        const { taskId } = req.params;
+        const deleted = await db
+            .delete(tasks)
+            .where(and(eq(tasks.id, taskId), eq(tasks.uid, req.user!)))
+            .returning();
+
+        if (!deleted || deleted.length === 0) {
+            return res.status(404).json({ error: "Task not found" });
+        }
+
         res.json(true);
 
     } catch(e) {

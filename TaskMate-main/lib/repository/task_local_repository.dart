@@ -53,24 +53,30 @@ class TaskLocalRepository {
     );
   }
 
-  // Get all tasks
-  Future<List<TaskModel>> getAllTasks() async {
+  // Get all tasks for a specific user
+  Future<List<TaskModel>> getAllTasksForUser(String userId) async {
     final db = await database;
-    final result = await db.query(tableName, orderBy: 'dueAt ASC');
+    final result = await db.query(
+      tableName,
+      where: 'uid = ?',
+      whereArgs: [userId],
+      orderBy: 'dueAt ASC',
+    );
 
     return result.map((row) => _convertRowToTaskModel(row)).toList();
   }
 
-  // Get tasks by date
-  Future<List<TaskModel>> getTasksByDate(DateTime date) async {
+  // Get tasks by date for a specific user
+  Future<List<TaskModel>> getTasksByDateForUser(String userId, DateTime date) async {
     final db = await database;
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     final result = await db.query(
       tableName,
-      where: 'dueAt >= ? AND dueAt < ?',
+      where: 'uid = ? AND dueAt >= ? AND dueAt < ?',
       whereArgs: [
+        userId,
         startOfDay.millisecondsSinceEpoch,
         endOfDay.millisecondsSinceEpoch
       ],
@@ -104,13 +110,13 @@ class TaskLocalRepository {
     );
   }
 
-  // Get unsynced tasks
-  Future<List<TaskModel>> getUnsyncedTasks() async {
+  // Get unsynced tasks for a specific user
+  Future<List<TaskModel>> getUnsyncedTasksForUser(String userId) async {
     final db = await database;
     final result = await db.query(
       tableName,
-      where: 'isSynced = ?',
-      whereArgs: [0],
+      where: 'uid = ? AND isSynced = ?',
+      whereArgs: [userId, 0],
     );
 
     return result.map((row) => _convertRowToTaskModel(row)).toList();
