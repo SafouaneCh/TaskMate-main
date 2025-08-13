@@ -7,6 +7,7 @@ import 'package:taskmate/cubit/add_new_task_cubit.dart'; // Import AddNewTaskCub
 import 'package:taskmate/cubit/tasks_cubit.dart'; // Import TasksCubit
 import 'package:taskmate/services/sync_service.dart';
 import 'package:taskmate/services/network_service.dart';
+import 'package:taskmate/core/services/onesignal_service.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart'; // Add this import
@@ -15,12 +16,18 @@ import 'screens/signup_screen.dart'; // Add this import
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase
+  // Load environment variables
+  //await dotenv.load(fileName: ".env");
+
+  // Initialize Supabase with environment variables
   await supabase.Supabase.initialize(
     url: 'https://zipxfbleyssjmevkicrm.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppcHhmYmxleXNzam1ldmtpY3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDY2OTgsImV4cCI6MjA3MDIyMjY5OH0.AisljHcyHbZujvPdwCtRKKpJ3LBaBUTnYsswZjn3G34',
   );
+
+  // Initialize OneSignal service for push notifications
+  await OneSignalService.initialize();
 
   // Initialize sync services
   await NetworkService().initialize();

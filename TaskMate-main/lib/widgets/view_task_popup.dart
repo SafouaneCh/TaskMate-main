@@ -178,7 +178,6 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
                                                 taskId: task.id,
                                                 status: newStatus,
                                                 token: authState.user.token,
-                                                userId: authState.user.id,
                                               );
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(

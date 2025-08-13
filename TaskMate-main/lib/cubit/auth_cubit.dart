@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskmate/core/services/sp_service.dart';
 import 'package:taskmate/models/user_model.dart';
+import 'package:taskmate/core/services/onesignal_service.dart';
 import 'package:taskmate/repository/auth_remote_repository.dart';
 
 part 'auth_state.dart';
@@ -20,6 +21,12 @@ class AuthCubit extends Cubit<AuthState> {
           .timeout(Duration(seconds: 10));
 
       if (userModel != null) {
+        // Ensure OneSignal subscription is linked to this user
+        try {
+          await OneSignalService.setExternalUserId(userModel.id);
+        } catch (e) {
+          print('Error linking OneSignal external user ID on boot: $e');
+        }
         emit(AuthLoggedIn(userModel));
       } else {
         // If no user data found, go to login
@@ -72,6 +79,13 @@ class AuthCubit extends Cubit<AuthState> {
         await spService.setToken(userModel.token);
       }
 
+      // Link OneSignal subscription to this user
+      try {
+        await OneSignalService.setExternalUserId(userModel.id);
+      } catch (e) {
+        print('Error linking OneSignal external user ID on login: $e');
+      }
+
       emit(AuthLoggedIn(userModel));
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -80,6 +94,12 @@ class AuthCubit extends Cubit<AuthState> {
 
   void logout() async {
     try {
+      // Logout from OneSignal and mark device inactive
+      try {
+        await OneSignalService.logout();
+      } catch (e) {
+        print('Error logging out from OneSignal: $e');
+      }
       // Clear the stored token
       await spService.removeToken();
       // Emit initial state to go back to login

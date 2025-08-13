@@ -75,7 +75,6 @@ class _AddTaskModalState extends State<AddTaskModal> {
         status: _selectedStatus,
         contacts: _selectedContacts,
         token: token ?? '',
-        userId: userId ?? '',
       );
       // Don't pop immediately, wait for success/error state
     }

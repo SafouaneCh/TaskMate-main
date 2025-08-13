@@ -1,29 +1,50 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskmate/models/task_model.dart';
-import 'package:taskmate/repository/task_hybrid_repository.dart';
+import 'package:taskmate/repository/task_remote_repository.dart';
 
 part 'tasks_state.dart';
 
 class TasksCubit extends Cubit<TasksState> {
-  TasksCubit() : super(TasksInitial());
-  final taskHybridRepository = TaskHybridRepository();
+  final TaskRemoteRepository _taskRepository = TaskRemoteRepository();
 
-  Future<void> fetchTasks({required String token, required String userId, DateTime? date}) async {
+  TasksCubit() : super(TasksInitial());
+
+  // Keep the old method name for compatibility
+  Future<void> fetchTasks({
+    required String token,
+    required String userId,
+    DateTime? date,
+  }) async {
     try {
       emit(TasksLoading());
-      final tasks = await taskHybridRepository.getTasks(
+
+      final tasks = await _taskRepository.getTasks(
         token: token,
-        userId: userId,
         date: date,
       );
+
       emit(TasksLoaded(tasks));
     } catch (e) {
       emit(TasksError(e.toString()));
     }
   }
 
-  void refreshTasks({required String token, required String userId, DateTime? date}) {
+  // Add refresh method for compatibility
+  void refreshTasks({
+    required String token,
+    required String userId,
+    DateTime? date,
+  }) {
     fetchTasks(token: token, userId: userId, date: date);
+  }
+
+  // Keep the new method name as well
+  Future<void> getTasks({
+    required String token,
+    required String userId,
+    DateTime? date,
+  }) async {
+    await fetchTasks(token: token, userId: userId, date: date);
   }
 
   Future<void> updateTask({
@@ -35,12 +56,12 @@ class TasksCubit extends Cubit<TasksState> {
     required String priority,
     required String contact,
     required String token,
-    required String userId,
     String? status,
-    DateTime? filterDate,
   }) async {
     try {
-      await taskHybridRepository.updateTask(
+      emit(TasksLoading());
+
+      final updatedTask = await _taskRepository.updateTask(
         taskId: taskId,
         name: name,
         description: description,
@@ -51,8 +72,9 @@ class TasksCubit extends Cubit<TasksState> {
         token: token,
         status: status,
       );
-      // Refresh tasks after update with the filter date
-      fetchTasks(token: token, userId: userId, date: filterDate);
+
+      // Refresh tasks list
+      await fetchTasks(token: token, userId: '', date: null);
     } catch (e) {
       emit(TasksError(e.toString()));
     }
@@ -62,17 +84,18 @@ class TasksCubit extends Cubit<TasksState> {
     required String taskId,
     required String status,
     required String token,
-    required String userId,
-    DateTime? filterDate,
   }) async {
     try {
-      await taskHybridRepository.updateTaskStatus(
+      emit(TasksLoading());
+
+      await _taskRepository.updateTaskStatus(
         taskId: taskId,
         status: status,
         token: token,
       );
-      // Refresh tasks after status update with the filter date
-      fetchTasks(token: token, userId: userId, date: filterDate);
+
+      // Refresh tasks list
+      await fetchTasks(token: token, userId: '', date: null);
     } catch (e) {
       emit(TasksError(e.toString()));
     }
@@ -81,16 +104,17 @@ class TasksCubit extends Cubit<TasksState> {
   Future<void> deleteTask({
     required String taskId,
     required String token,
-    required String userId,
-    DateTime? date,
   }) async {
     try {
-      await taskHybridRepository.deleteTask(
+      emit(TasksLoading());
+
+      await _taskRepository.deleteTask(
         taskId: taskId,
         token: token,
       );
-      // Refresh tasks after delete with the same date
-      fetchTasks(token: token, userId: userId, date: date);
+
+      // Refresh tasks list
+      await fetchTasks(token: token, userId: '', date: null);
     } catch (e) {
       emit(TasksError(e.toString()));
     }

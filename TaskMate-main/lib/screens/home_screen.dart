@@ -102,13 +102,13 @@ class _HomeScreenState extends State<HomeScreen> {
             onTaskAdded: (newTask) {
               // Refresh tasks after adding a new one
               final authState = context.read<AuthCubit>().state;
-                if (authState is AuthLoggedIn) {
-                  context.read<TasksCubit>().refreshTasks(
-                        token: authState.user.token,
-                        userId: authState.user.id,
-                        date: _selectedDay,
-                      );
-                }
+              if (authState is AuthLoggedIn) {
+                context.read<TasksCubit>().refreshTasks(
+                      token: authState.user.token,
+                      userId: authState.user.id,
+                      date: _selectedDay,
+                    );
+              }
             },
           ),
         );
@@ -140,8 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
             taskId: task.id,
             status: newStatus,
             token: authState.user.token,
-            userId: authState.user.id,
-            filterDate: _selectedDay,
           );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -204,8 +202,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<TasksCubit>().deleteTask(
             taskId: task.id,
             token: authState.user.token,
-            userId: authState.user.id,
-            date: _selectedDay,
           );
       // Refresh tasks for the current selected date after deletion
       context.read<TasksCubit>().refreshTasks(
@@ -644,7 +640,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         final authState =
                                             context.read<AuthCubit>().state;
                                         if (authState is AuthLoggedIn) {
-                                          context.read<TasksCubit>().refreshTasks(
+                                          context
+                                              .read<TasksCubit>()
+                                              .refreshTasks(
                                                 token: authState.user.token,
                                                 userId: authState.user.id,
                                                 date: _selectedDay,

@@ -84,18 +84,19 @@ class SyncService {
   Future<List<TaskModel>> _syncFromSupabase() async {
     if (!_isOnline) return [];
 
-    try {
-      final response = await _supabase
-          .from('tasks')
-          .select()
-          .eq('user_id', _supabase.auth.currentUser?.id ?? '');
-
-      if (response != null) {
-        return (response as List)
-            .map((task) => TaskModel.fromJson(task))
-            .toList();
-      }
+    final currentUser = _supabase.auth.currentUser;
+    if (currentUser == null) {
+      // Avoid querying with empty UUID which causes 22P02 errors
       return [];
+    }
+
+    try {
+      final response =
+          await _supabase.from('tasks').select().eq('user_id', currentUser.id);
+
+      return (response as List)
+          .map((task) => TaskModel.fromJson(task))
+          .toList();
     } catch (e) {
       print('Error syncing from Supabase: $e');
       return [];

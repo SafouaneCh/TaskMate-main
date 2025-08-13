@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="task_reminders_channel_id">task_reminders</string>
+    <string name="task_reminders_channel_name">Task Reminders</string>
+    <string name="task_reminders_channel_description">Notifications for task reminders and due dates</string>
+</resources>

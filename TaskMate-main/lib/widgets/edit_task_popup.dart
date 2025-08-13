@@ -97,9 +97,7 @@ class _EditTaskModalState extends State<EditTaskModal> {
             priority: _selectedPriority,
             contact: _selectedContacts.map((c) => c.displayName).join(","),
             token: token,
-            userId: authState.user.id,
             status: _selectedStatus,
-            filterDate: widget.filterDate,
           );
 
       Navigator.of(context).pop();
