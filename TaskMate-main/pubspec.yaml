@@ -54,6 +54,7 @@ flutter:
     - assets/icons/vector_right.svg
     - assets/icons/vector_left.svg
     - assets/images/
+    - .env
 
   uses-material-design: true
 

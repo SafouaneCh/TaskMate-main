@@ -8,6 +8,7 @@ import 'package:taskmate/cubit/tasks_cubit.dart'; // Import TasksCubit
 import 'package:taskmate/services/sync_service.dart';
 import 'package:taskmate/services/network_service.dart';
 import 'package:taskmate/core/services/onesignal_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart'; // Add this import
@@ -17,12 +18,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables
-  //await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print("Failed to load .env file: $e");
+    // Fallback to hardcoded values if .env loading fails
+  }
 
   // Initialize Supabase with environment variables
   await supabase.Supabase.initialize(
-    url: 'https://zipxfbleyssjmevkicrm.supabase.co',
-    anonKey:
+    url: dotenv.env['SUPABASE_URL'] ??
+        'https://zipxfbleyssjmevkicrm.supabase.co',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ??
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppcHhmYmxleXNzam1ldmtpY3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDY2OTgsImV4cCI6MjA3MDIyMjY5OH0.AisljHcyHbZujvPdwCtRKKpJ3LBaBUTnYsswZjn3G34',
   );
 
