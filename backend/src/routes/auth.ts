@@ -214,18 +214,18 @@ authRouter.post("/tokenIsValid", async(req, res) => {
         .from(users)
         .where(eq(users.id, verifiedToken.id));
 
-        if(!user) {
+        if(!user.length) {
             res.json(false);
             return;
         }
 
         res.json(true);
 
-
     } catch (e) {
+        console.error('Token validation error:', e);
         res.status(500).json(false);
     }
-})
+});
 
 authRouter.get("/", auth, async (req: AuthRequest, res: Response) => {
     try{

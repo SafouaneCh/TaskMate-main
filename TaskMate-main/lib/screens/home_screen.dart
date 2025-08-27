@@ -11,6 +11,7 @@ import '../cubit/add_new_task_cubit.dart';
 import '../cubit/tasks_cubit.dart';
 import '../cubit/auth_cubit.dart';
 import '../widgets/add_task_popup.dart';
+import '../widgets/ai_task_popup.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_popup.dart';
 import '../widgets/offline_status_indicator.dart';
@@ -27,13 +28,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   CalendarFormat _calendarFormat = CalendarFormat.week;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
+  DateTime _selectedDay = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    _selectedDay = DateTime.now();
     // Fetch tasks when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = context.read<AuthCubit>().state;
@@ -45,23 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
             );
       }
     });
-  }
-
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    setState(() {
-      _selectedDay = selectedDay;
-      _focusedDay = focusedDay;
-    });
-
-    // Fetch tasks for the selected date
-    final authState = context.read<AuthCubit>().state;
-    if (authState is AuthLoggedIn) {
-      context.read<TasksCubit>().fetchTasks(
-            token: authState.user.token,
-            userId: authState.user.id,
-            date: selectedDay,
-          );
-    }
   }
 
   void _onItemTapped(int index) {
@@ -110,6 +92,106 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
               }
             },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAITaskModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BlocProvider<AddNewTaskCubit>(
+          create: (context) => AddNewTaskCubit(),
+          child: AITaskModal(
+            onTaskAdded: (newTask) {
+              // Refresh tasks immediately and then close modal
+              final authState = context.read<AuthCubit>().state;
+              if (authState is AuthLoggedIn) {
+                // Refresh tasks for the currently selected date
+                context.read<TasksCubit>().refreshTasks(
+                      token: authState.user.token,
+                      userId: authState.user.id,
+                      date: _selectedDay,
+                    );
+              }
+            },
+            selectedDate: _selectedDay,
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTaskCreationMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Create New Task',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF073F5C),
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showAddTaskModal(context);
+                      },
+                      icon: Icon(Icons.add_task, color: Colors.white),
+                      label: Text(
+                        'Regular Task',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF073F5C),
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 15),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showAITaskModal(context);
+                      },
+                      icon: Icon(Icons.auto_awesome, color: Colors.white),
+                      label: Text(
+                        'AI Task',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF0E81BD),
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+            ],
           ),
         );
       },
@@ -230,6 +312,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      _selectedDay = selectedDay;
+    });
+
+    // Fetch tasks for the selected date
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthLoggedIn) {
+      context.read<TasksCubit>().fetchTasks(
+            token: authState.user.token,
+            userId: authState.user.id,
+            date: selectedDay,
+          );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -336,23 +434,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Text(
-                        _selectedDay != null
-                            ? DateFormat('MMMM d, yyyy').format(_selectedDay!)
-                            : '$formattedDate Today',
+                        DateFormat('MMMM d, yyyy').format(_selectedDay),
                         style: TextStyle(
                           fontFamily: 'Roboto',
-                          fontSize: screenWidth * 0.04,
                           height: 1.1,
-                          color: Color(0xFF333333),
+                          fontSize: screenWidth * 0.04,
+                          color: Color(0xFF666666),
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.02),
                       SingleChildScrollView(
                         physics: NeverScrollableScrollPhysics(),
                         child: TableCalendar(
-                          firstDay: DateTime.utc(2020, 10, 16),
-                          lastDay: DateTime.utc(2030, 3, 14),
-                          focusedDay: _focusedDay,
+                          firstDay: DateTime.utc(2020, 1, 1),
+                          lastDay: DateTime.utc(2030, 12, 31),
+                          focusedDay: _selectedDay,
                           selectedDayPredicate: (day) {
                             return isSameDay(_selectedDay, day);
                           },
@@ -364,7 +460,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
                           },
                           onPageChanged: (focusedDay) {
-                            _focusedDay = focusedDay;
+                            setState(() {
+                              _selectedDay = focusedDay;
+                            });
                           },
                           availableCalendarFormats: const {
                             CalendarFormat.week: 'Week',
@@ -378,6 +476,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             weekendStyle: TextStyle(
                               fontWeight: FontWeight.bold,
+                              fontSize: screenWidth * 0.04,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                            ),
+                          ),
+                          headerStyle: HeaderStyle(
+                            titleTextStyle: TextStyle(
                               fontSize: screenWidth * 0.04,
                             ),
                             decoration: BoxDecoration(
@@ -415,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                             selectedDecoration: BoxDecoration(
-                              color: Colors.orange,
+                              color: Color(0xFF073F5C),
                               shape: BoxShape.rectangle,
                               borderRadius:
                                   BorderRadius.circular(screenWidth * 0.025),
@@ -701,7 +807,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: GestureDetector(
-        onTap: () => _showAddTaskModal(context),
+        onTap: () => _showTaskCreationMenu(context),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(screenWidth * 0.07),

@@ -29,7 +29,7 @@ class OneSignalService {
       print('Notification permission requested');
 
       // Check if permission was granted
-      final permissionStatus = await OneSignal.Notifications.permission;
+      final permissionStatus = OneSignal.Notifications.permission;
       print('Notification permission status: $permissionStatus');
 
       // Set up notification handlers
@@ -63,7 +63,7 @@ class OneSignalService {
 
       // Explicitly trigger device registration
       print('Triggering device registration...');
-      await OneSignal.User.pushSubscription.optedIn;
+      OneSignal.User.pushSubscription.optedIn;
       print('Device registration triggered');
 
       // Wait for OneSignal to be fully ready

@@ -9,8 +9,13 @@ import '../widgets/task_card.dart';
 
 class AddTaskModal extends StatefulWidget {
   final void Function(TaskCard) onTaskAdded;
+  final DateTime? selectedDate; // Add optional selected date parameter
 
-  const AddTaskModal({super.key, required this.onTaskAdded});
+  const AddTaskModal({
+    super.key,
+    required this.onTaskAdded,
+    this.selectedDate, // Add this parameter
+  });
 
   @override
   _AddTaskModalState createState() => _AddTaskModalState();
@@ -24,6 +29,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
   final TextEditingController _timeController = TextEditingController();
   String _selectedPriority = 'Medium priority';
   String _selectedStatus = 'pending';
+  String _selectedReminderType = '1hour'; // Add reminder type selection
   final List<Contact> _selectedContacts = [];
   List<Contact> _allContacts = [];
   bool _contactsLoading = true;
@@ -33,6 +39,12 @@ class _AddTaskModalState extends State<AddTaskModal> {
   void initState() {
     super.initState();
     _fetchContacts();
+
+    // Pre-fill date field if selected date is provided
+    if (widget.selectedDate != null) {
+      _dateController.text =
+          widget.selectedDate!.toLocal().toString().split(' ')[0];
+    }
   }
 
   Future<void> _fetchContacts() async {
@@ -75,6 +87,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
         status: _selectedStatus,
         contacts: _selectedContacts,
         token: token ?? '',
+        reminderType: _selectedReminderType, // Add reminder type
       );
       // Don't pop immediately, wait for success/error state
     }
@@ -479,14 +492,9 @@ class _AddTaskModalState extends State<AddTaskModal> {
               duration: Duration(seconds: 2),
             ),
           );
-          // Refresh tasks list
-          final authState = context.read<AuthCubit>().state;
-          if (authState is AuthLoggedIn) {
-            context.read<TasksCubit>().refreshTasks(
-                  token: authState.user.token,
-                  userId: authState.user.id,
-                );
-          }
+          // Don't refresh tasks here - let the parent component handle it
+          // to maintain the correct date filter
+
           // Close the popup
           Navigator.of(context).pop();
         } else if (state is AddNewTakError) {

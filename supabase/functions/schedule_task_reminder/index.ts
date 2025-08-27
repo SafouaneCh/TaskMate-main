@@ -13,30 +13,43 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json()
-    console.log('Received request body:', JSON.stringify(requestBody, null, 2))
+    console.log('🔔 === Task Reminder Scheduling Request ===')
+    console.log('📋 Request body:', JSON.stringify(requestBody, null, 2))
     
     const { taskId, userId, title, message, scheduledAt, priority, reminderType, playerId } = requestBody
 
     // Validate required fields
     if (!taskId || !userId || !title || !message || !scheduledAt || !playerId) {
-      console.log('Missing fields - taskId:', !!taskId, 'userId:', !!userId, 'title:', !!title, 'message:', !!message, 'scheduledAt:', !!scheduledAt, 'playerId:', !!playerId)
+      console.log('❌ Missing required fields:')
+      console.log('  - taskId:', !!taskId)
+      console.log('  - userId:', !!userId)
+      console.log('  - title:', !!title)
+      console.log('  - message:', !!message)
+      console.log('  - scheduledAt:', !!scheduledAt)
+      console.log('  - playerId:', !!playerId)
       throw new Error('Missing required fields')
     }
+
+    console.log('✅ All required fields present')
+    console.log('📅 Scheduling details:')
+    console.log('  - Task ID:', taskId)
+    console.log('  - User ID:', userId)
+    console.log('  - Reminder Type:', reminderType)
+    console.log('  - Scheduled At:', scheduledAt)
+    console.log('  - Player ID:', playerId)
 
     // Get OneSignal credentials from environment
     const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID')
     const oneSignalRestApiKey = Deno.env.get('ONESIGNAL_REST_API_KEY')
 
     if (!oneSignalAppId || !oneSignalRestApiKey) {
+      console.log('❌ OneSignal configuration missing:')
+      console.log('  - ONESIGNAL_APP_ID:', !!oneSignalAppId)
+      console.log('  - ONESIGNAL_REST_API_KEY:', !!oneSignalRestApiKey)
       throw new Error('OneSignal configuration missing')
     }
 
-    // Use playerId from request instead of placeholder
-    // const playerId = await getUserOneSignalPlayerId(userId)
-    
-    // if (!playerId) {
-    //   throw new Error('User device not found')
-    // }
+    console.log('✅ OneSignal configuration found')
 
     // Schedule notification via OneSignal
     const notificationData = {
@@ -44,8 +57,7 @@ serve(async (req) => {
       include_player_ids: [playerId],
       headings: { en: title },
       contents: { en: message },
-      // Remove send_after to send immediately
-      // send_after: scheduledAt,
+      send_after: scheduledAt, // Enable real scheduling
       data: {
         taskId,
         userId,
@@ -53,9 +65,10 @@ serve(async (req) => {
         reminderType,
         type: 'task_reminder'
       },
-      // Removed android_channel_id temporarily - will add back after creating the channel
       priority: 10
     }
+
+    console.log('📤 OneSignal notification data:', JSON.stringify(notificationData, null, 2))
 
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
@@ -66,15 +79,18 @@ serve(async (req) => {
       body: JSON.stringify(notificationData)
     })
 
-    console.log('OneSignal API response status:', response.status)
+    console.log('📱 OneSignal API response status:', response.status)
     const responseText = await response.text()
-    console.log('OneSignal API response body:', responseText)
+    console.log('📱 OneSignal API response body:', responseText)
 
     if (!response.ok) {
+      console.log('❌ OneSignal API error response')
       throw new Error(`OneSignal API error: ${responseText}`)
     }
 
     const result = JSON.parse(responseText)
+    console.log('✅ OneSignal notification scheduled successfully')
+    console.log('📱 OneSignal notification ID:', result.id)
 
     // Store notification record in scheduled_notifications table
     await storeScheduledNotification({
@@ -86,11 +102,16 @@ serve(async (req) => {
       oneSignalNotificationId: result.id
     })
 
+    console.log('💾 Notification record stored in database')
+    console.log('🎉 === Task Reminder Scheduling Complete ===')
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         notificationId: result.id,
-        message: 'Task reminder scheduled successfully' 
+        message: 'Task reminder scheduled successfully',
+        scheduledAt: scheduledAt,
+        reminderType: reminderType
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -99,11 +120,14 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error scheduling task reminder:', error)
+    console.error('❌ === Task Reminder Scheduling Error ===')
+    console.error('Error details:', error.message)
+    console.error('Stack trace:', error.stack)
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: error.message,
+        timestamp: new Date().toISOString()
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -73,8 +73,13 @@ class TasksCubit extends Cubit<TasksState> {
         status: status,
       );
 
-      // Refresh tasks list
-      await fetchTasks(token: token, userId: '', date: null);
+      // Refresh tasks list - we need to maintain the current state
+      // Since we don't have access to the current date filter here,
+      // we'll emit the current state to avoid losing the filter
+      if (state is TasksLoaded) {
+        final currentState = state as TasksLoaded;
+        emit(TasksLoaded(currentState.tasks));
+      }
     } catch (e) {
       emit(TasksError(e.toString()));
     }
@@ -94,8 +99,13 @@ class TasksCubit extends Cubit<TasksState> {
         token: token,
       );
 
-      // Refresh tasks list
-      await fetchTasks(token: token, userId: '', date: null);
+      // Refresh tasks list - we need to maintain the current state
+      // Since we don't have access to the current date filter here,
+      // we'll emit the current state to avoid losing the filter
+      if (state is TasksLoaded) {
+        final currentState = state as TasksLoaded;
+        emit(TasksLoaded(currentState.tasks));
+      }
     } catch (e) {
       emit(TasksError(e.toString()));
     }
@@ -113,8 +123,13 @@ class TasksCubit extends Cubit<TasksState> {
         token: token,
       );
 
-      // Refresh tasks list
-      await fetchTasks(token: token, userId: '', date: null);
+      // Refresh tasks list - we need to maintain the current state
+      // Since we don't have access to the current date filter here,
+      // we'll emit the current state to avoid losing the filter
+      if (state is TasksLoaded) {
+        final currentState = state as TasksLoaded;
+        emit(TasksLoaded(currentState.tasks));
+      }
     } catch (e) {
       emit(TasksError(e.toString()));
     }

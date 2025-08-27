@@ -14,13 +14,15 @@ class AuthCubit extends Cubit<AuthState> {
   void getUserData() async {
     try {
       emit(AuthLoading());
+      print('AuthCubit: Starting getUserData...');
 
       // Add a timeout to prevent infinite loading
       final userModel = await authRemoteRepository
           .getUserData()
-          .timeout(Duration(seconds: 10));
+          .timeout(Duration(seconds: 20));
 
       if (userModel != null) {
+        print('AuthCubit: User data retrieved successfully');
         // Ensure OneSignal subscription is linked to this user
         try {
           await OneSignalService.setExternalUserId(userModel.id);
@@ -29,13 +31,24 @@ class AuthCubit extends Cubit<AuthState> {
         }
         emit(AuthLoggedIn(userModel));
       } else {
+        print('AuthCubit: No user data found, redirecting to login');
         // If no user data found, go to login
         emit(AuthInitial());
       }
     } catch (e) {
-      print('Error getting user data: $e');
-      // If there's an error (network issue, etc.), go to login screen
-      emit(AuthInitial());
+      print('AuthCubit: Error getting user data: $e');
+      String errorMessage = 'Authentication failed';
+
+      if (e.toString().contains('TimeoutException')) {
+        errorMessage =
+            'Request timeout: Server is taking too long to respond. Please try again.';
+      } else if (e.toString().contains('SocketException')) {
+        errorMessage =
+            'Connection failed: Unable to reach the server. Please check if the backend is running.';
+      }
+
+      // If there's an error (network issue, etc.), go to login screen with error
+      emit(AuthError(errorMessage));
     }
   }
 

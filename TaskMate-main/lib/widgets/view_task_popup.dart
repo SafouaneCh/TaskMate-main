@@ -8,8 +8,13 @@ import 'package:taskmate/models/task_model.dart';
 
 class ViewTasksPopup extends StatefulWidget {
   final VoidCallback onAddTask;
+  final DateTime? selectedDate; // Add selected date parameter
 
-  const ViewTasksPopup({super.key, required this.onAddTask});
+  const ViewTasksPopup({
+    super.key,
+    required this.onAddTask,
+    this.selectedDate, // Add this parameter
+  });
 
   @override
   _ViewTasksPopupState createState() => _ViewTasksPopupState();
@@ -24,8 +29,9 @@ class _ViewTasksPopupState extends State<ViewTasksPopup> {
     final screenHeight = screenSize.height;
     final screenWidth = screenSize.width;
 
-    // Format the current date
-    String formattedDate = DateFormat('MMMM d, yyyy').format(DateTime.now());
+    // Use selected date if provided, otherwise use current date
+    DateTime displayDate = widget.selectedDate ?? DateTime.now();
+    String formattedDate = DateFormat('MMMM d, yyyy').format(displayDate);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.65,

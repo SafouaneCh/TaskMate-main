@@ -23,6 +23,16 @@ app.use((req, res, next) => {
     next();
 });
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+    res.json({ 
+        status: "ok", 
+        timestamp: new Date().toISOString(),
+        service: "TaskMate Backend",
+        version: "1.0.0"
+    });
+});
+
 app.use("/auth",authRouter);
 app.use("/tasks", taskRouter);
 

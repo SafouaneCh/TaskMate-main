@@ -4,11 +4,75 @@ import { NewTask, tasks, users } from "../db/schema";
 import { db } from "../db";
 import { eq, and, gte, lt } from "drizzle-orm";
 import dotenv from "dotenv";
+import { AIService } from "../services/aiService";
 
 dotenv.config();
 
 const taskRouter = Router();
+const aiService = new AIService();
 
+
+// AI-powered natural language task creation
+taskRouter.post("/ai", auth, async (req: AuthRequest, res) => {
+    try {
+        const { naturalLanguageInput } = req.body;
+        
+        if (!naturalLanguageInput || typeof naturalLanguageInput !== 'string') {
+            return res.status(400).json({ error: 'Natural language input is required' });
+        }
+
+        // Parse natural language using AI service
+        const parsedTask = await aiService.parseNaturalLanguage(naturalLanguageInput);
+        
+        // Create task object from parsed data
+        const newTask: NewTask = {
+            name: parsedTask.task,
+            description: `AI-generated task from: "${naturalLanguageInput}"`,
+            dueAt: parsedTask.datetime ? new Date(parsedTask.datetime) : new Date(),
+            uid: req.user!,
+            priority: "Medium priority",
+            contact: parsedTask.person || null,
+            status: "pending"
+        };
+
+        // Insert task into database
+        const [task] = await db.insert(tasks).values(newTask).returning();
+        
+        res.status(201).json({
+            task: task,
+            parsed: parsedTask,
+            message: "Task created successfully from natural language input"
+        });
+
+    } catch(e) {
+        console.error('AI task creation error:', e);
+        res.status(500).json({error: 'Failed to create task from natural language input'});
+    }
+});
+
+// Test endpoint for AI parsing (no auth required for testing)
+taskRouter.post("/ai/test", async (req, res) => {
+    try {
+        const { naturalLanguageInput } = req.body;
+        
+        if (!naturalLanguageInput || typeof naturalLanguageInput !== 'string') {
+            return res.status(400).json({ error: 'Natural language input is required' });
+        }
+
+        // Parse natural language using AI service
+        const parsedTask = await aiService.parseNaturalLanguage(naturalLanguageInput);
+        
+        res.json({
+            input: naturalLanguageInput,
+            parsed: parsedTask,
+            message: "AI parsing successful"
+        });
+
+    } catch(e) {
+        console.error('AI test error:', e);
+        res.status(500).json({error: 'Failed to parse natural language input'});
+    }
+});
 
 taskRouter.post("/", auth, async (req: AuthRequest, res) => {
     try {
@@ -162,5 +226,7 @@ taskRouter.delete("/:taskId", auth, async (req: AuthRequest, res) => {
     }
 
 });
+
+
 
 export default taskRouter;

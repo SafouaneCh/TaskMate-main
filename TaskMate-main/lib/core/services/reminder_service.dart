@@ -15,10 +15,13 @@ class ReminderService {
   // static String get _supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
   static Future<void> scheduleTaskReminder(TaskModel task) async {
-    print('ReminderService.scheduleTaskReminder called for task: ${task.name}');
+    print(
+        '🔔 ReminderService.scheduleTaskReminder called for task: ${task.name}');
+    print(
+        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, HasReminder=${task.hasReminder}');
 
     if (!task.hasReminder || task.reminderAt == null) {
-      print('Task has no reminder or reminderAt is null');
+      print('❌ Task has no reminder or reminderAt is null');
       return;
     }
 
@@ -27,33 +30,70 @@ class ReminderService {
       await _schedulePushReminder(task);
 
       print(
-          'Push notification scheduled for task: ${task.name} at ${task.reminderAt}');
+          '✅ Push notification scheduled for task: ${task.name} at ${task.reminderAt}');
     } catch (e) {
-      print('Error scheduling push notification: $e');
+      print('❌ Error scheduling push notification: $e');
     }
   }
 
-  static Future<void> _schedulePushReminder(TaskModel task) async {
+  // New method to schedule multiple reminders for a task
+  static Future<void> scheduleMultipleReminders(
+      TaskModel task, List<String> reminderTypes) async {
+    print(
+        '🔔 ReminderService.scheduleMultipleReminders called for task: ${task.name}');
+    print(
+        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, ReminderTypes=${reminderTypes}');
+
+    if (reminderTypes.isEmpty) {
+      print('❌ No reminder types specified');
+      return;
+    }
+
+    try {
+      // Cancel any existing reminders first
+      await cancelTaskReminder(task.id);
+      print('🔄 Cancelled existing reminders for task: ${task.id}');
+
+      // Schedule each reminder type
+      for (String reminderType in reminderTypes) {
+        await _schedulePushReminder(task, reminderType);
+        print('✅ Scheduled ${reminderType} reminder for task: ${task.name}');
+      }
+
+      print(
+          '🎉 All ${reminderTypes.length} reminders scheduled successfully for task: ${task.name}');
+    } catch (e) {
+      print('❌ Error scheduling multiple reminders: $e');
+    }
+  }
+
+  static Future<void> _schedulePushReminder(TaskModel task,
+      [String? customReminderType]) async {
     try {
       // Validate Supabase environment variables
       if (_supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty) {
-        print('Error: Supabase environment variables not configured');
+        print('❌ Error: Supabase environment variables not configured');
         return;
       }
 
       // Get the real OneSignal player ID from the device
       final playerId = await OneSignalService.getPlayerId();
       if (playerId == null || playerId.isEmpty) {
-        print('Error: Could not get OneSignal player ID or it is empty');
+        print('❌ Error: Could not get OneSignal player ID or it is empty');
         print('Player ID received: "$playerId"');
         return;
       }
 
-      print('Got OneSignal player ID: $playerId');
+      print('✅ Got OneSignal player ID: $playerId');
+
+      // Use custom reminder type if provided, otherwise use task's reminder type
+      final reminderType = customReminderType ?? task.reminderType ?? '1hour';
 
       // Calculate reminder time based on reminderType
-      final scheduledDate =
-          calculateReminderTime(task.dueAt, task.reminderType ?? '1hour');
+      final scheduledDate = calculateReminderTime(task.dueAt, reminderType);
+
+      print(
+          '📅 Reminder calculation: Due=${task.dueAt}, Type=${reminderType}, Scheduled=${scheduledDate}');
 
       // Prepare request body
       final requestBody = {
@@ -63,11 +103,11 @@ class ReminderService {
         'message': 'Your task "${task.name}" is due soon!',
         'scheduledAt': scheduledDate.toIso8601String(),
         'priority': task.priority,
-        'reminderType': task.reminderType ?? '1hour',
+        'reminderType': reminderType,
         'playerId': playerId, // Send the real player ID
       };
 
-      print('Sending request body: ${jsonEncode(requestBody)}');
+      print('📤 Sending request body: ${jsonEncode(requestBody)}');
 
       // Call Supabase Edge Function to schedule notification
       final response = await http.post(
@@ -82,60 +122,201 @@ class ReminderService {
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         print(
-            'Push notification scheduled successfully: ${result['notificationId']}');
+            '✅ Push notification scheduled successfully: ${result['notificationId']}');
+        print('📱 OneSignal notification ID: ${result['notificationId']}');
       } else {
         print(
-            'Error scheduling push notification: ${response.statusCode} - ${response.body}');
+            '❌ Error scheduling push notification: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error scheduling push notification: $e');
+      print('❌ Error scheduling push notification: $e');
     }
   }
 
   static Future<void> cancelTaskReminder(String taskId) async {
+    print('🚫 ReminderService.cancelTaskReminder called for task: $taskId');
+
     try {
       // Validate environment variables
       if (_supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty) {
-        throw Exception('Supabase environment variables not configured');
+        print('❌ Error: Supabase environment variables not configured');
+        return;
       }
 
       // Cancel push notification via Supabase Edge Function
       final supabase = Supabase.instance.client;
-      await supabase.functions.invoke('cancel-notification', body: {
+      final result =
+          await supabase.functions.invoke('cancel-notification', body: {
         'taskId': taskId,
       });
 
-      print('Push notification cancelled for task: $taskId');
+      print('✅ Push notification cancelled for task: $taskId');
+      print('📋 Cancellation result: ${result.data}');
     } catch (e) {
-      print('Error cancelling push notification: $e');
-      rethrow; // Re-throw to handle in calling code
+      print('❌ Error cancelling push notification: $e');
+      // Don't rethrow - cancellation failure shouldn't break the app
+    }
+  }
+
+  // Method to cancel multiple task reminders
+  static Future<void> cancelMultipleTaskReminders(List<String> taskIds) async {
+    print(
+        '🚫 ReminderService.cancelMultipleTaskReminders called for ${taskIds.length} tasks');
+    print('📋 Task IDs: $taskIds');
+
+    try {
+      for (String taskId in taskIds) {
+        await cancelTaskReminder(taskId);
+      }
+      print('✅ All ${taskIds.length} task reminders cancelled successfully');
+    } catch (e) {
+      print('❌ Error cancelling multiple task reminders: $e');
+    }
+  }
+
+  // Method to cancel all reminders for a user
+  static Future<void> cancelAllUserReminders(String userId) async {
+    print('🚫 ReminderService.cancelAllUserReminders called for user: $userId');
+
+    try {
+      // This would require a backend endpoint to get all scheduled notifications for a user
+      // For now, we'll log the request
+      print('📋 Request to cancel all reminders for user: $userId');
+      print(
+          '⚠️ Note: This requires backend implementation to get user\'s scheduled notifications');
+
+      // TODO: Implement when backend supports getting user's scheduled notifications
+      // final supabase = Supabase.instance.client;
+      // final result = await supabase.functions.invoke('cancel-all-user-notifications', body: {
+      //   'userId': userId,
+      // });
+    } catch (e) {
+      print('❌ Error cancelling all user reminders: $e');
     }
   }
 
   static Future<void> updateTaskReminder(TaskModel task) async {
-    // Cancel existing reminder and schedule new one
-    await cancelTaskReminder(task.id);
-    await scheduleTaskReminder(task);
+    print(
+        '🔄 ReminderService.updateTaskReminder called for task: ${task.name}');
+    print(
+        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, ReminderType=${task.reminderType}');
+
+    try {
+      // Cancel existing reminder and schedule new one
+      await cancelTaskReminder(task.id);
+      print('✅ Cancelled existing reminder for task: ${task.id}');
+
+      // Schedule new reminder
+      await scheduleTaskReminder(task);
+      print('✅ New reminder scheduled for updated task: ${task.name}');
+    } catch (e) {
+      print('❌ Error updating task reminder: $e');
+    }
+  }
+
+  // Enhanced method for handling task updates with multiple reminder types
+  static Future<void> updateTaskReminders(
+      TaskModel task, List<String> newReminderTypes) async {
+    print(
+        '🔄 ReminderService.updateTaskReminders called for task: ${task.name}');
+    print(
+        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, NewReminderTypes=${newReminderTypes}');
+
+    try {
+      // Cancel all existing reminders first
+      await cancelTaskReminder(task.id);
+      print('✅ Cancelled all existing reminders for task: ${task.id}');
+
+      // Schedule new reminders
+      await scheduleMultipleReminders(task, newReminderTypes);
+      print('✅ All new reminders scheduled for updated task: ${task.name}');
+    } catch (e) {
+      print('❌ Error updating task reminders: $e');
+    }
+  }
+
+  // Enhanced method for handling task updates with due date changes
+  static Future<void> updateTaskReminderWithNewDueDate(
+      TaskModel task, DateTime newDueDate) async {
+    print(
+        '🔄 ReminderService.updateTaskReminderWithNewDueDate called for task: ${task.name}');
+    print(
+        '📋 Task details: ID=${task.id}, OldDue=${task.dueAt}, NewDue=${newDueDate}');
+
+    try {
+      // Cancel existing reminder
+      await cancelTaskReminder(task.id);
+      print('✅ Cancelled existing reminder for task: ${task.id}');
+
+      // Create updated task model with new due date
+      final updatedTask = task.copyWith(dueAt: newDueDate);
+
+      // Schedule new reminder with updated due date
+      await scheduleTaskReminder(updatedTask);
+      print(
+          '✅ New reminder scheduled for task with updated due date: ${task.name}');
+    } catch (e) {
+      print('❌ Error updating task reminder with new due date: $e');
+    }
   }
 
   // Helper method to calculate reminder time based on due date
   static DateTime calculateReminderTime(DateTime dueDate, String reminderType) {
-    // For testing: always send notification immediately
-    return DateTime.now().add(Duration(seconds: 5)); // 5 seconds from now
-
-    // Original logic (commented out for testing):
-    /*
+    // Calculate the intended reminder time
+    DateTime intendedReminderTime;
     switch (reminderType) {
       case '15min':
-        return dueDate.subtract(const Duration(minutes: 15));
+        intendedReminderTime = dueDate.subtract(const Duration(minutes: 15));
+        break;
+      case '30min':
+        intendedReminderTime = dueDate.subtract(const Duration(minutes: 30));
+        break;
       case '1hour':
-        return dueDate.subtract(const Duration(hours: 1));
+        intendedReminderTime = dueDate.subtract(const Duration(hours: 1));
+        break;
+      case '2hours':
+        intendedReminderTime = dueDate.subtract(const Duration(hours: 2));
+        break;
+      case '3hours':
+        intendedReminderTime = dueDate.subtract(const Duration(hours: 3));
+        break;
       case '1day':
-        return dueDate.subtract(const Duration(days: 1));
+        intendedReminderTime = dueDate.subtract(const Duration(days: 1));
+        break;
       default:
-        return dueDate.subtract(const Duration(hours: 1));
+        intendedReminderTime = dueDate
+            .subtract(const Duration(hours: 1)); // Default: 1 hour before
     }
-    */
+
+    // Handle edge cases for tasks due very soon
+    final now = DateTime.now();
+    final timeUntilDue = dueDate.difference(now);
+
+    // If task is due in less than 15 minutes, send reminder immediately
+    if (timeUntilDue.inMinutes < 15) {
+      print(
+          '⚠️ Task due very soon (${timeUntilDue.inMinutes} minutes). Scheduling reminder immediately.');
+      return now.add(const Duration(seconds: 10)); // 10 seconds from now
+    }
+
+    // If calculated reminder time is in the past, send immediately
+    if (intendedReminderTime.isBefore(now)) {
+      print(
+          '⚠️ Calculated reminder time (${intendedReminderTime}) is in the past. Scheduling reminder immediately.');
+      return now.add(const Duration(seconds: 10)); // 10 seconds from now
+    }
+
+    // If reminder time is very close (within 1 minute), send immediately
+    final timeUntilReminder = intendedReminderTime.difference(now);
+    if (timeUntilReminder.inMinutes < 1) {
+      print(
+          '⚠️ Reminder time very close (${timeUntilReminder.inMinutes} minutes). Scheduling reminder immediately.');
+      return now.add(const Duration(seconds: 10)); // 10 seconds from now
+    }
+
+    print(
+        '✅ Reminder scheduled for: ${intendedReminderTime} (${timeUntilReminder.inMinutes} minutes from now)');
+    return intendedReminderTime;
   }
 
   // Helper method to create a task with automatic reminder calculation

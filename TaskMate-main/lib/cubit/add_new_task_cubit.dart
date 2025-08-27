@@ -20,6 +20,8 @@ class AddNewTaskCubit extends Cubit<AddNewTaskState> {
     required List<Contact> contacts, // Changed from contact to contacts
     required String token,
     String status = 'pending',
+    String reminderType = '1hour', // Add reminder type parameter
+    List<String> reminderTypes = const ['1hour'], // Support multiple reminders
   }) async {
     try {
       emit(AddNewTakLoading());
@@ -38,15 +40,29 @@ class AddNewTaskCubit extends Cubit<AddNewTaskState> {
         status: status,
       );
 
-      // Always schedule reminder for new tasks (since backend doesn't have reminder fields yet)
-      // Create a task model with reminder enabled
-      final taskWithReminder = taskModel.copyWith(
-        hasReminder: true,
-        reminderAt: taskModel.dueAt,
-        reminderType: '1hour',
-      );
-
-      await ReminderService.scheduleTaskReminder(taskWithReminder);
+      // Schedule reminders for new tasks
+      if (reminderTypes.isNotEmpty) {
+        if (reminderTypes.length == 1) {
+          // Single reminder
+          final taskWithReminder = taskModel.copyWith(
+            hasReminder: true,
+            reminderAt: taskModel.dueAt,
+            reminderType: reminderTypes.first,
+          );
+          await ReminderService.scheduleTaskReminder(taskWithReminder);
+          print('✅ Single reminder scheduled for task: ${taskModel.name}');
+        } else {
+          // Multiple reminders
+          final taskWithReminder = taskModel.copyWith(
+            hasReminder: true,
+            reminderAt: taskModel.dueAt,
+            reminderType: reminderTypes.first, // Keep first as primary
+          );
+          await ReminderService.scheduleMultipleReminders(
+              taskWithReminder, reminderTypes);
+          print('✅ Multiple reminders scheduled for task: ${taskModel.name}');
+        }
+      }
 
       emit(AddNewTakSucess(taskModel));
     } catch (e) {

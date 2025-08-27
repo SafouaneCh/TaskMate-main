@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskmate/screens/settings_screen.dart';
 import 'package:taskmate/cubit/tasks_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
+import 'package:taskmate/cubit/add_new_task_cubit.dart';
 import 'contact_management_screen.dart';
 import 'home_screen.dart' as home;
 import '../widgets/add_task_popup.dart';
@@ -13,33 +14,19 @@ import '../widgets/custom_bottom_bar.dart';
 import '../widgets/task_card.dart';
 // Added import for TaskDetailPopup
 
-void _showAddTaskModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (BuildContext context) {
-      return AddTaskModal(
-        onTaskAdded: (TaskCard newTask) {
-          // Handle the task addition logic here
-          // For example, you might want to add it to a list or update the state
-        },
-      );
-    },
-  );
-}
-
-void showViewTasksPopup(BuildContext context, DateTime? selectedDate) {
+void showViewTasksPopup(
+    BuildContext context, DateTime? selectedDate, VoidCallback onAddTask) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) {
-      return ViewTasksPopup(
-        onAddTask: () {
-          Navigator.pop(context); // Close the ViewTasksPopup
-          showAddTaskModal(context); // Show the AddTaskPopup
-        },
+      return BlocProvider.value(
+        value: context.read<TasksCubit>(),
+        child: ViewTasksPopup(
+          onAddTask: onAddTask,
+          selectedDate: selectedDate, // Pass the selected date
+        ),
       );
     },
   );
@@ -73,6 +60,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
             );
       }
     });
+  }
+
+  void _showAddTaskModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return BlocProvider<AddNewTaskCubit>(
+          create: (context) => AddNewTaskCubit(),
+          child: AddTaskModal(
+            onTaskAdded: (TaskCard newTask) {
+              // Refresh tasks for the selected date after adding a new one
+              final authState = context.read<AuthCubit>().state;
+              if (authState is AuthLoggedIn) {
+                context.read<TasksCubit>().refreshTasks(
+                      token: authState.user.token,
+                      userId: authState.user.id,
+                      date: _selectedDay,
+                    );
+              }
+            },
+            selectedDate: _selectedDay, // Pass the selected date
+          ),
+        );
+      },
+    );
   }
 
   void _onItemTapped(int index) {
@@ -412,7 +426,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            showViewTasksPopup(context, _selectedDay);
+                            showViewTasksPopup(context, _selectedDay, () {
+                              _showAddTaskModal(context);
+                            });
                           },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
