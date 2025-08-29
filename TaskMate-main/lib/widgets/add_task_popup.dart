@@ -4,7 +4,6 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:taskmate/cubit/add_new_task_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
-import 'package:taskmate/cubit/tasks_cubit.dart';
 import '../widgets/task_card.dart';
 
 class AddTaskModal extends StatefulWidget {
@@ -29,7 +28,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
   final TextEditingController _timeController = TextEditingController();
   String _selectedPriority = 'Medium priority';
   String _selectedStatus = 'pending';
-  String _selectedReminderType = '1hour'; // Add reminder type selection
+  final String _selectedReminderType = '1hour'; // Add reminder type selection
   final List<Contact> _selectedContacts = [];
   List<Contact> _allContacts = [];
   bool _contactsLoading = true;
@@ -492,9 +491,18 @@ class _AddTaskModalState extends State<AddTaskModal> {
               duration: Duration(seconds: 2),
             ),
           );
-          // Don't refresh tasks here - let the parent component handle it
-          // to maintain the correct date filter
-
+          
+          // Notify parent component about the new task
+          widget.onTaskAdded(TaskCard(
+            time: '12:00', // Default time since we don't have exact time
+            description: state.taskModel.description,
+            priority: state.taskModel.priority,
+            name: state.taskModel.name,
+            date: state.taskModel.dueAt.toLocal().toString().split(' ')[0],
+            contacts: state.taskModel.contact.isNotEmpty ? [state.taskModel.contact] : [],
+            status: state.taskModel.status,
+          ));
+          
           // Close the popup
           Navigator.of(context).pop();
         } else if (state is AddNewTakError) {

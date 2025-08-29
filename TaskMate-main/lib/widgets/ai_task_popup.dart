@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:taskmate/cubit/add_new_task_cubit.dart';
 import 'package:taskmate/cubit/auth_cubit.dart';
 import 'package:taskmate/cubit/tasks_cubit.dart';
 import '../widgets/task_card.dart';
@@ -99,13 +96,13 @@ class _AITaskModalState extends State<AITaskModal> {
           print(
               'Created TaskModel: ${taskModel.name}, dueAt: ${taskModel.dueAt}, hasReminder: ${taskModel.hasReminder}');
 
-          // Schedule multiple reminders for AI tasks (1 day + 1 hour + 15 min)
-          final reminderTypes = ['1day', '1hour', '15min'];
+          // Schedule only ONE reminder to prevent duplicates
+          final reminderTypes = ['1hour']; // Only 1 reminder to avoid spam
           await ReminderService.scheduleMultipleReminders(
               taskModel, reminderTypes);
           print(
-              '✅ Multiple reminders scheduled successfully for AI-created task: ${taskModel.name}');
-          print('📋 Reminder types: $reminderTypes');
+              '✅ Single reminder scheduled successfully for AI-created task: ${taskModel.name}');
+          print('📋 Reminder type: $reminderTypes (1 hour before due)');
         } catch (e) {
           print('❌ Failed to schedule reminder for AI task: $e');
           print('Error details: ${e.toString()}');
@@ -279,7 +276,7 @@ class _AITaskModalState extends State<AITaskModal> {
                             ),
                             SizedBox(height: screenHeight * 0.01),
                             Text(
-                              'The AI will automatically create a task with the right name, description, date, time, priority, and status.',
+                              'The AI will automatically create a task with the right name, description, date, time, priority, and status. You can specify priority (high/medium/low) and status (pending/in progress/completed) in your description.',
                               style: TextStyle(
                                 fontSize: screenWidth * 0.032,
                                 color: Colors.blue.shade600,
@@ -422,9 +419,10 @@ class _AITaskModalState extends State<AITaskModal> {
                             SizedBox(height: screenHeight * 0.01),
                             Text(
                               '• "Call Sarah on Friday at 10 AM to confirm appointment"\n'
-                              '• "Send weekly report to team by Friday"\n'
+                              '• "Send weekly report to team by Friday, high priority"\n'
                               '• "Don\'t forget to buy groceries tomorrow morning"\n'
-                              '• "Review quarterly budget with finance team next Monday at 10 AM"',
+                              '• "Review quarterly budget with finance team next Monday at 10 AM, urgent"\n'
+                              '• "Meeting with John tomorrow at 2 PM, in progress"',
                               style: TextStyle(
                                 fontSize: screenWidth * 0.03,
                                 color: Colors.grey.shade600,

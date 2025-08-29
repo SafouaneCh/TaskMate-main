@@ -14,7 +14,6 @@ import '../widgets/add_task_popup.dart';
 import '../widgets/ai_task_popup.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_popup.dart';
-import '../widgets/offline_status_indicator.dart';
 import '../widgets/edit_task_popup.dart';
 import '../models/task_model.dart';
 
@@ -263,15 +262,8 @@ class _HomeScreenState extends State<HomeScreen> {
           task: task,
           filterDate: _selectedDay,
           onTaskUpdated: () {
-            // Refresh tasks after updating
-            final authState = context.read<AuthCubit>().state;
-            if (authState is AuthLoggedIn) {
-              context.read<TasksCubit>().refreshTasks(
-                    token: authState.user.token,
-                    userId: authState.user.id,
-                    date: _selectedDay,
-                  );
-            }
+            // Tasks are now automatically updated in the state
+            // No need to manually refresh
           },
         );
       },
@@ -286,11 +278,6 @@ class _HomeScreenState extends State<HomeScreen> {
             token: authState.user.token,
           );
       // Refresh tasks for the current selected date after deletion
-      context.read<TasksCubit>().refreshTasks(
-            token: authState.user.token,
-            userId: authState.user.id,
-            date: _selectedDay,
-          );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Task deleted successfully!')),
       );
@@ -412,7 +399,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                            const OfflineStatusIndicator(),
                             Spacer(),
                           ],
                         );

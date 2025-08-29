@@ -42,7 +42,7 @@ class ReminderService {
     print(
         '🔔 ReminderService.scheduleMultipleReminders called for task: ${task.name}');
     print(
-        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, ReminderTypes=${reminderTypes}');
+        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, ReminderTypes=$reminderTypes');
 
     if (reminderTypes.isEmpty) {
       print('❌ No reminder types specified');
@@ -57,7 +57,7 @@ class ReminderService {
       // Schedule each reminder type
       for (String reminderType in reminderTypes) {
         await _schedulePushReminder(task, reminderType);
-        print('✅ Scheduled ${reminderType} reminder for task: ${task.name}');
+        print('✅ Scheduled $reminderType reminder for task: ${task.name}');
       }
 
       print(
@@ -92,8 +92,15 @@ class ReminderService {
       // Calculate reminder time based on reminderType
       final scheduledDate = calculateReminderTime(task.dueAt, reminderType);
 
+      // Add detailed timing information
+      final now = DateTime.now();
+      final timeUntilReminder = scheduledDate.difference(now);
+      final timeUntilDue = task.dueAt.difference(now);
+
       print(
-          '📅 Reminder calculation: Due=${task.dueAt}, Type=${reminderType}, Scheduled=${scheduledDate}');
+          '📅 Reminder calculation: Due=${task.dueAt}, Type=$reminderType, Scheduled=$scheduledDate');
+      print(
+          '⏰ Timing: Reminder in ${timeUntilReminder.inMinutes} minutes, Task due in ${timeUntilDue.inHours} hours');
 
       // Prepare request body
       final requestBody = {
@@ -220,7 +227,7 @@ class ReminderService {
     print(
         '🔄 ReminderService.updateTaskReminders called for task: ${task.name}');
     print(
-        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, NewReminderTypes=${newReminderTypes}');
+        '📋 Task details: ID=${task.id}, Due=${task.dueAt}, NewReminderTypes=$newReminderTypes');
 
     try {
       // Cancel all existing reminders first
@@ -241,7 +248,7 @@ class ReminderService {
     print(
         '🔄 ReminderService.updateTaskReminderWithNewDueDate called for task: ${task.name}');
     print(
-        '📋 Task details: ID=${task.id}, OldDue=${task.dueAt}, NewDue=${newDueDate}');
+        '📋 Task details: ID=${task.id}, OldDue=${task.dueAt}, NewDue=$newDueDate');
 
     try {
       // Cancel existing reminder
@@ -292,30 +299,42 @@ class ReminderService {
     final now = DateTime.now();
     final timeUntilDue = dueDate.difference(now);
 
-    // If task is due in less than 15 minutes, send reminder immediately
+    // IMPROVED: Only send immediately for tasks due very soon (within 15 minutes)
     if (timeUntilDue.inMinutes < 15) {
       print(
           '⚠️ Task due very soon (${timeUntilDue.inMinutes} minutes). Scheduling reminder immediately.');
       return now.add(const Duration(seconds: 10)); // 10 seconds from now
     }
 
-    // If calculated reminder time is in the past, send immediately
+    // FIXED: For future tasks, if the calculated reminder time is in the past,
+    // schedule it for a reasonable future time instead of the past
     if (intendedReminderTime.isBefore(now)) {
       print(
-          '⚠️ Calculated reminder time (${intendedReminderTime}) is in the past. Scheduling reminder immediately.');
-      return now.add(const Duration(seconds: 10)); // 10 seconds from now
-    }
+          '⚠️ Calculated reminder time ($intendedReminderTime) is in the past for future task. Rescheduling for reasonable time.');
 
-    // If reminder time is very close (within 1 minute), send immediately
-    final timeUntilReminder = intendedReminderTime.difference(now);
-    if (timeUntilReminder.inMinutes < 1) {
+      // Calculate a reasonable reminder time: minimum 30 minutes from now
+      final reasonableReminderTime = now.add(const Duration(minutes: 30));
+
+      // But don't schedule it after the task is due
+      if (reasonableReminderTime.isAfter(dueDate)) {
+        // If even 30 minutes from now would be after the task is due,
+        // schedule it for 15 minutes before the task
+        final lastMinuteReminder =
+            dueDate.subtract(const Duration(minutes: 15));
+        print(
+            '✅ Rescheduled reminder to 15 minutes before due: $lastMinuteReminder');
+        return lastMinuteReminder;
+      }
+
       print(
-          '⚠️ Reminder time very close (${timeUntilReminder.inMinutes} minutes). Scheduling reminder immediately.');
-      return now.add(const Duration(seconds: 10)); // 10 seconds from now
+          '✅ Rescheduled reminder to reasonable time: $reasonableReminderTime');
+      return reasonableReminderTime;
     }
 
+    // Calculate time until reminder for logging
+    final timeUntilReminder = intendedReminderTime.difference(now);
     print(
-        '✅ Reminder scheduled for: ${intendedReminderTime} (${timeUntilReminder.inMinutes} minutes from now)');
+        '✅ Reminder scheduled for: $intendedReminderTime (${timeUntilReminder.inMinutes} minutes from now)');
     return intendedReminderTime;
   }
 

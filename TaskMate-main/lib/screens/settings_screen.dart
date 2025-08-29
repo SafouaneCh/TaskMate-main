@@ -15,7 +15,6 @@ import 'notifications_screen.dart';
 import 'privacy_security_screen.dart';
 import 'help_support_screen.dart';
 import 'about_screen.dart';
-import '../widgets/offline_status_indicator.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -78,33 +77,84 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showSyncSettingsDialog(BuildContext context) {
+  void _showDataExportDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Sync Settings'),
+          title: const Text('Export Data'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const OfflineStatusIndicator(),
-              const SizedBox(height: 16),
               const Text(
-                'TaskMate works offline-first:',
+                'Export your data:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
-              const Text('• All tasks are saved locally first'),
-              const Text('• Changes sync automatically when online'),
-              const Text('• Your data is always safe and accessible'),
-              const Text('• No internet required for basic operations'),
+              const SizedBox(height: 16),
+              const Text('• Export tasks as CSV/PDF'),
+              const Text('• Backup your data'),
+              const Text('• Share with other apps'),
+              const Text('• Data is always synced to cloud'),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // TODO: Implement data export functionality
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Export feature coming soon!')),
+                );
+              },
+              child: const Text('Export'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAccountSettingsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Account Settings'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Manage your account:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text('• Change password'),
+              const Text('• Two-factor authentication'),
+              const Text('• Connected devices'),
+              const Text('• Account deletion'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // TODO: Implement account settings
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Account settings coming soon!')),
+                );
+              },
+              child: const Text('Manage'),
             ),
           ],
         );
@@ -173,63 +223,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             borderRadius:
                                 BorderRadius.circular(screenWidth * 0.025),
                           ),
-                          child: Row(
+                          child: Column(
                             children: [
-                              CircleAvatar(
-                                radius: screenWidth * 0.08,
-                                backgroundImage:
-                                    AssetImage('assets/utilisateur.png'),
-                              ),
-                              SizedBox(width: screenWidth * 0.04),
-                              Expanded(
-                                child: BlocBuilder<AuthCubit, AuthState>(
-                                  builder: (context, authState) {
-                                    String userName = 'User';
-                                    String userEmail = 'user@example.com';
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: screenWidth * 0.08,
+                                    backgroundImage:
+                                        AssetImage('assets/utilisateur.png'),
+                                  ),
+                                  SizedBox(width: screenWidth * 0.04),
+                                  Expanded(
+                                    child: BlocBuilder<AuthCubit, AuthState>(
+                                      builder: (context, authState) {
+                                        String userName = 'User';
+                                        String userEmail = 'user@example.com';
 
-                                    if (authState is AuthLoggedIn) {
-                                      userName = authState.user.name;
-                                      userEmail = authState.user.email;
-                                    }
+                                        if (authState is AuthLoggedIn) {
+                                          userName = authState.user.name;
+                                          userEmail = authState.user.email;
+                                        }
 
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          userName,
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.055,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        Text(
-                                          userEmail,
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.04,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () =>
-                                    _navigateToEditProfile(context),
-                                icon: Icon(
-                                  Icons.edit,
-                                  size: screenWidth * 0.06,
-                                  color: Colors.blue,
-                                ),
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              userName,
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.055,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            Text(
+                                              userEmail,
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.04,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () =>
+                                        _navigateToEditProfile(context),
+                                    icon: Icon(
+                                      Icons.edit,
+                                      size: screenWidth * 0.06,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(height: screenHeight * 0.03),
+
                       // Settings Options
                       Container(
                         decoration: BoxDecoration(
@@ -256,11 +310,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             Divider(height: 1, color: Colors.grey[300]),
                             _buildSettingsItem(
-                              icon: Icons.sync,
-                              title: 'Sync Settings',
-                              subtitle: 'Manage offline mode and sync',
+                              icon: Icons.account_circle,
+                              title: 'Account Settings',
+                              subtitle: 'Manage your account and security',
                               onTap: () {
-                                _showSyncSettingsDialog(context);
+                                _showAccountSettingsDialog(context);
+                              },
+                              screenWidth: screenWidth,
+                              screenHeight: screenHeight,
+                            ),
+                            Divider(height: 1, color: Colors.grey[300]),
+                            _buildSettingsItem(
+                              icon: Icons.download,
+                              title: 'Data Export',
+                              subtitle: 'Export and backup your data',
+                              onTap: () {
+                                _showDataExportDialog(context);
                               },
                               screenWidth: screenWidth,
                               screenHeight: screenHeight,

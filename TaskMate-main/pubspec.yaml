@@ -24,6 +24,7 @@ dependencies:
   connectivity_plus: ^5.0.2
   onesignal_flutter: ^5.1.0
   flutter_dotenv: ^5.1.0
+  image_picker: ^1.0.7  # Added for profile picture editing
   
 
   flutter_launcher_icons: ^0.14.4  # UPDATED: Compatible with Flutter 3.32
