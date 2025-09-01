@@ -1,0 +1,27 @@
+[33m5b8c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m test version
+[33m47dbc5b[m finished NLU
+[33m2e680eb[m push notifications v1
+[33m20f69fc[m push notifications
+[33m8891d29[m each user for task + edit
+[33m5e52062[m offline first
+[33mb694403[m the last version1
+[33m5106ff6[m the last version
+[33m736de2b[m last changes
+[33m4a95e1c[m add task is working now !
+[33m567aa48[m connecting the backend to frontend
+[33m9d173cb[m task router
+[33mfaa1767[m testing connection frontend
+[33mb23441e[m see gradle configuration
+[33mf70d053[m finished implementation of connection frontend to backend
+[33m5e7bda1[m update
+[33m523e837[m update
+[33ma5fbb76[m j ai changé ;
+[33m62c9bf1[m update
+[33mc6eff68[m connecting the backend to frontend
+[33m17ee743[m authentication completed
+[33m942e300[m added .env + jwt
+[33m13c29ee[m login route
+[33m49bf9f4[m i added the drizzle.config.ts
+[33mb752bed[m i edited some files you had errors on them and some mistakes you didn't copy code like the video !
+[33m5661c7e[m Initial commit
+[33m3424678[m Initial commit - Docker and PostgreSQLsetup
