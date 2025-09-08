@@ -25,14 +25,26 @@ taskRouter.post("/ai", auth, async (req: AuthRequest, res) => {
         const parsedTask = await aiService.parseNaturalLanguage(naturalLanguageInput);
         
         // Create task object from parsed data
+        // Default to tomorrow if no datetime is provided
+        let dueAt: Date;
+        if (parsedTask.datetime) {
+            dueAt = new Date(parsedTask.datetime);
+        } else {
+            // Default to tomorrow at 9 AM if no specific date/time is provided
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(9, 0, 0, 0);
+            dueAt = tomorrow;
+        }
+
         const newTask: NewTask = {
             name: parsedTask.task,
-            description: `AI-generated task from: "${naturalLanguageInput}"`,
-            dueAt: parsedTask.datetime ? new Date(parsedTask.datetime) : new Date(),
+            description: parsedTask.description ? `AI generated : ${parsedTask.description}` : `AI-generated task from: "${naturalLanguageInput}"`,
+            dueAt: dueAt,
             uid: req.user!,
-            priority: "Medium priority",
+            priority: parsedTask.priority || "Medium priority",
             contact: parsedTask.person || null,
-            status: "pending"
+            status: parsedTask.status || "pending"
         };
 
         // Insert task into database

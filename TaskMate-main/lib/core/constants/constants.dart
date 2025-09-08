@@ -1,5 +1,7 @@
 class Constants {
-  static String backendUri = "https://zipxfbleyssjmevkicrm.supabase.co";
+  static String backendUri = "http://192.168.1.8:8000";
+
+  static String supabaseUrl = "https://zipxfbleyssjmevkicrm.supabase.co";
 }
 
 // API Endpoints
